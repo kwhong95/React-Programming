@@ -137,3 +137,105 @@ ReactDOM.render(
 
 ```
 > 3개의 좋아요 버튼 확인!
+
+### 1.2.2 바벨 사용해 보기
+> 바벨(babel): JS 코드를 변환해 주는 컴파일러  
+
+- 최신 JS 문법을 지원하지 않는 환경에서 최신 문법 사용 가능
+- 코드에서 주석을 제거하거나 코드를 압축하는 용도로 사용 가능
+- 리액트에서는 JSX 문법을 사용하기 위해 사용
+  + JSX 문법으로 작성된 코드를 createElement 함수를 호출하는 코드로 변환
+  
+```js
+function LikeButton() {
+    const [liked, setLiked] = React.useState(false);
+    const text = liked ? '좋아요 취소' : '좋아요';
+    return React.createElement(
+        'button',
+        { onClick: () => setLiked(!liked) },
+        text,
+    );
+}
+function Container() {
+    const [count, setCount] = React.useState(0);
+    return React.createElement(
+        'div',
+        null,
+        React.createElement(LikeButton),
+        React.createElement(
+            'div',
+            { style: { marginTop: 20 } },
+            React.createElement('span', null, '현재 카운트: '),
+            React.createElement('span', null, count),
+            React.createElement(
+                'button',
+                { onClick: () => setCount(count + 1) },
+                '증가',
+            ),
+            React.createElement(
+                'button',
+                { onClick: () => setCount(count - 1) },
+                '감소',
+            ),
+        ),
+    );
+}
+const domContainer = document.querySelector('#react-root');
+ReactDOM.render(React.createElement(Container), domContainer);
+```
+- 단순한 기능인데 UI 코드가 상당히 복잡, 바벨을 통해 개선 가능
+- 기존 LikeButton 코드가 Container 로 변경, 대신 Container 컴포넌트 내부에서 사용 
+
+-----
+
+#### JSX 문법 사용해 보기
+```js
+function Container() {
+    const [count, setCount] = React.useState(0);
+    return (
+        <div>
+            <LikeButton />
+            <div style={{ marginTop: 20 }}>
+                <span>현재 카운트: </span>
+                <span>{count}</span>
+                <button onClick={() => setCount(count + 1)}>증가</button>
+                <button onClick={() => setCount(count - 1)}>감소</button>
+            </div>
+        </div>
+    );
+}
+```
+> JSX 문법을 사용하니 가독성이 훨씬 좋다.
+
+#### JSX 문법 알아보기
+> HTML 태그를 사용하는 방식과 유사 / createElement 함수를 사용해서 작성하는 것보다 간결하고 가독성도 좋다. HTML 태그와 가장 큰 차이는 속성값을 작성하는 방법에 있다.
+
+- 이벤트 처리 함수는 브라우저마다 다르게 동작할 수 있기 때문에 리액트와 같은 라이브러리를 사용하지 않을 때 주의해야 하지만, 리엑트에서는 브라우저와 상관 없이 이벤트 객체(SyntheticEvent)를 전달
+- JS 에서는 속성 이름에 대시(-)로 연결되는 이름을 사용하기 힘들기에 카멜 케이스(camel case)를 이용
+
+----
+#### JSX 문법을 바벨로 컴파일 하기 
+> 바벨을 npm 으로 설치하자
+```
+npm install @babel/core @babel/cli @babel/preset-react
+```
+- @babel-cli : 커맨드 라인에서 바벨을 실행할 수 있는 바이너리 파일 존재
+- @babel/preset-react : JSX 로 작성된 코드를 `createElement`함수를 이용한 코드로 변환해 주는 바벨 플러그인 존재
+
+*바벨 플러그인과 프리셋*  
+바벨은 JS 파일을 입력으로 받아서 또 다른 JS 파일을 출력으로 준비한다.  
+이렇게 변환해 주는 작업은 플러그인(Plugin) 단위로 이루어지며, 그 수 만큼 플러그인 수를 사용한다.
+이런 플러그인의 집합을 프리셋(preset)이라고 하며, 바벨에서는 코드를 압축하는 플러그인을 모아 놓은 babel-preset-minify 를 제공한다.  
+@babel/preset-react 는 리액트 애플리케이션을 만들 때 필요한 플러그인을 모아 놓은 프리셋이다.
+
+> 설치된 패키지로 JS 파일 변환
+```
+npx babel --watch src --out-dir . --presets @babel/preset-react
+```
+
+npx 명령어는 외부 패키지에 포함된 실행 파일을 실행할 때 사용  
+외부 패키지의 실행 파일은 `./node_modules/.bin/` 밑에 저장  
+따라서 `npx babel`은 `./node_modules/.bin/babel`을 입력하는 것과 비슷  
+위 명령어를 사용하면 src 폴더에 있는 모든 JS 파일을 `@babel/preset-react` 프리셋을 이용하여 변환 후 현재 폴더에 같은 이름의 JS 파일을 생성  
+watch 모드로 실행했기 때문에 JS 파일을 수정할 때마다 자동으로 변환 후 저장
+
