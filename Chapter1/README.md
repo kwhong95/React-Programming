@@ -289,4 +289,25 @@ import { func2 as myFunc2 } from './file1.js'; // 4️⃣
 - 3️⃣ `default` 키워드로 내보내진 코드는 괄호 없이 가져올 수 있고, 원하는 대로 이름 설정이 가능
 - 1️⃣ 코드에서 내보낸 `func1` 함수는 3️⃣ 코드에서 myFunc1 이라는 이름으로 가져 옴
 - 3️⃣ `default` 키워드 없이 내보내진 코드는 괄호를 사용해 가져옴(가져오거나 내보낼 때 사용된 이름 그대로)
-- 4️⃣ 원한다면 as 키워드를 이용해서 이름 변경이 가능ㄴ
+- 4️⃣ 원한다면 as 키워드를 이용해서 이름 변경이 가능
+
+### 1.2.4 웹팩 사용해 보기
+> 리액트의 두 파일을 JS 의 모듈 시스템으로 포함
+
+1. package.json 파일 생성
+```
+npm init -y
+```
+
+2. 필요한 외부패키지 설치
+```
+npm i webpack webpack-cli react react-dom
+```
+
+3. Test 환경 구축 
+> webpack-test directory 참고
+
+4. 웹팩으로 두 JS 파일 하나로 합치기
+```
+npx webpack
+```
