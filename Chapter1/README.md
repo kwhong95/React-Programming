@@ -264,6 +264,7 @@ watch 모드로 실행했기 때문에 JS 파일을 수정할 때마다 자동�
 ES6 부터 모듈 시스템이 언어 차원에서 지원  
 대표적인 JS 모듈 시스템 : `commonJS`   
 내보내고 가져다 쓸 수 있도록 구현된 시스템이 모듈 시스템이라 한다.
+
 ------
 
 - 웹팩은 ESM(ES6의 모듈 시스템)과 commonJS 를 모두 지원
@@ -311,3 +312,5 @@ npm i webpack webpack-cli react react-dom
 ```
 npx webpack
 ```
+
+> dist 파일에 main.js 파일이 생성되며, 웹팩으로 생성된 파일이다.
