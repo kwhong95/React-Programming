@@ -222,7 +222,8 @@ npm install @babel/core @babel/cli @babel/preset-react
 - @babel-cli : 커맨드 라인에서 바벨을 실행할 수 있는 바이너리 파일 존재
 - @babel/preset-react : JSX 로 작성된 코드를 `createElement`함수를 이용한 코드로 변환해 주는 바벨 플러그인 존재
 
-*바벨 플러그인과 프리셋*  
+*바벨 플러그인과 프리셋*   
+  
 바벨은 JS 파일을 입력으로 받아서 또 다른 JS 파일을 출력으로 준비한다.  
 이렇게 변환해 주는 작업은 플러그인(Plugin) 단위로 이루어지며, 그 수 만큼 플러그인 수를 사용한다.
 이런 플러그인의 집합을 프리셋(preset)이라고 하며, 바벨에서는 코드를 압축하는 플러그인을 모아 놓은 babel-preset-minify 를 제공한다.  
@@ -239,3 +240,53 @@ npx 명령어는 외부 패키지에 포함된 실행 파일을 실행할 때 �
 위 명령어를 사용하면 src 폴더에 있는 모든 JS 파일을 `@babel/preset-react` 프리셋을 이용하여 변환 후 현재 폴더에 같은 이름의 JS 파일을 생성  
 watch 모드로 실행했기 때문에 JS 파일을 수정할 때마다 자동으로 변환 후 저장
 
+### 1.2.3 웹팩의 기본 개념 이해하기
+> JS 로 만든 프로그램을 배포하기 좋은 형태로 묶어 주는 도구.
+
+#### 전통적인 방식으로 개발된 웹사이트의 HTML 코드
+```html
+<html>
+    <head>
+      <script type="text/javascript" src="javascript_file_1.js"></script>
+      <script type="text/javascript" src="javascript_file_2.js"></script>
+      <!-- ... -->
+      <script type="text/javascript" src="javascript_file_999.js"></script>
+    </head>
+    <!-- ... -->
+</html>
+```
+기존 방식의 계속 늘어나는 JS 파일을 관리하기 힘듬  
+파일 간의 의존성 떄문에 선언되는 순서를 신경 써야 함  
+선언된 JS 파일이 앞에 선언된 파일에서 생성한 전역 변수를 덮어쓰는 위험 존재...
+
+*JS의 모듈 시스템*
+  
+ES6 부터 모듈 시스템이 언어 차원에서 지원  
+대표적인 JS 모듈 시스템 : `commonJS`   
+내보내고 가져다 쓸 수 있도록 구현된 시스템이 모듈 시스템이라 한다.
+------
+
+- 웹팩은 ESM(ES6의 모듈 시스템)과 commonJS 를 모두 지원
+- 예전 버전의 브라우저에서도 동작하는 JS 코드를 만듬
+
+*ESM 문법 익히기*
+```js
+export default function func1() {} //  1️⃣
+export function  func2() {}  
+export const variable1 = 123; //  2️⃣
+export let variable2 = 'hello';
+
+// file2.js 파일
+import myFunc1, { func2, variable1, variable2 } from './file1.js'; // 3️⃣
+
+// file3.js 파일
+import { func2 as myFunc2 } from './file1.js'; // 4️⃣
+```
+
+- 1️⃣,2️⃣ 코드를 내보낼 때는 `export` 키워드를 사용
+- 3️⃣ 코드를 사용하는 쪽에서 `import`, `from` 키워드를 사용
+- 1️⃣ `default` 키워드는 한 파일에서 한번만 사용 가능
+- 3️⃣ `default` 키워드로 내보내진 코드는 괄호 없이 가져올 수 있고, 원하는 대로 이름 설정이 가능
+- 1️⃣ 코드에서 내보낸 `func1` 함수는 3️⃣ 코드에서 myFunc1 이라는 이름으로 가져 옴
+- 3️⃣ `default` 키워드 없이 내보내진 코드는 괄호를 사용해 가져옴(가져오거나 내보낼 때 사용된 이름 그대로)
+- 4️⃣ 원한다면 as 키워드를 이용해서 이름 변경이 가능ㄴ
