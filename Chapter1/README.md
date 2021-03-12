@@ -498,3 +498,16 @@ console.log(`REACT_APP_LOGIN_API = ${process.env.REACT_APP_LOGIN_API}`);
 ```
 REACT_APP_NODE_VERSION=$npm_version
 ```
+----
+
+## 1.4 CSS 작성 방법 결정하기
+
+### 1.4.1 일반적인 CSS 파일로 작성하기
+> 코드 참조!!
+
+- `Button1.css` 파일은 일반적인 CSS 파일
+- CSS 파일도 ESM 문법을 이용해서 JS 로 가져올 수 있음
+- `Button1.css` 파일에 정의된 CSS 클래스명을 입력
+
+> 단점 : CSS 클래스명이 같으면 나중 것으로 대체!(클래스명 충돌)
+
