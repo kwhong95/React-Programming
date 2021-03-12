@@ -314,3 +314,98 @@ npx webpack
 ```
 
 > dist 파일에 main.js 파일이 생성되며, 웹팩으로 생성된 파일이다.
+
+## create-react-app 으로 시작하기
+> 리액트로 웹 애플리케이션을 만들기 위한 환경 제공
+
+**장점**
+- 바벨 / 웹팩 포함
+- 테스트 시스템, HMR(hot-module-replacement), ES6+ 문법, CSS 후처리 등 필수 개발 환경 구축
+- 문제 해결을 위한 선택지가 여러 개일 때 가장 합리적인 선택
+- 리액트 환경 구축을 위한 시간 절약
+
+### 1.3.1 create-react-app 사용해 보기
+1. 리액트-cra
+```
+npx create-react-app cra-test
+```
+2. 리액트 앱 실행하기
+```html
+cd cra-test
+npm start
+```
+
+3. src 폴더 밑에서 `import` 키워드 사용 장점
+- JS & CSS 파일 자동 압축
+- 웹팩: 해시값 이용 > url 생성 > 브라우저 캐싱 효과
+- 페이지 title 수정 - `react-helmet` 이용
+- 검색 엔진 최적화 - `SSR(서버사이드 렌더링)`에 특화된 `넥스트(next.js)` 사용
+- PWA(progressive web app) 기능 - `serviceWorker.register()` 코드 사용
+
+### 1.3.2 주요 명령어 알아보기 
+> package.json 파일의 네 가지 npm 스크립트 명령어
+
+#### 개발 모드로 실행하기
+> npm start
+- HMR 동작 > 코드 수정시 화면에 즉시 반영
+- 에러 메세지 출력 영역을 클릭하면 에러가 발생한 파일이 에디터에서 오픈
+- https 실행 옵션 제공 (`HTTPS=true npm start`)
+
+#### 빌드하기
+> npm run build
+- 배포 환경 파일 제공(압축) > 정적 파일 생성
+
+> npx serve -s build
+- serve 패키지 : 노드(node.js)환경에서 동작하는 웹 서버 애플리케이션
+- build/static 폴더 밑에 생성된 파일의 이름에 **해시값** 포함
+  + 파일의 내용이 변경되지 않으면 해시값은 항상 동일
+  + 새로 빌드를 해도 변경되지 않은 파일은 브라우저에 캐싱되어 있는 파일 사용
+  + 빠르게 페이지가 렌더링 되는 효과
+- `import`로 가져온 CSS 파일은 모두 `build/static/css/main.{해시값}.chunk.css`에 저장
+  + 이미지 파일 크기가 10kb 보다 작은 경우에는 별도 파일로 생성되지 않고 `data url`형식으로 JS 파일에 포함
+    + 크기가 작을 땐 한 번의 요청으로 처리하는 것이 효율적
+  
+#### 테스트 코드 실행하기
+> npm test
+
+- 제스트(jest) 란 테스트 프레임워크 기반으로 테스트 시스템 구축
+- 테스트 JS 파일 조건
+  + `__test__` 폴더 밑에 있는 모든 JS 파일
+  + 파일 이름이 `.test.js`로 끝나는 파일
+  + 파일 이름이 `.spec.js`로 끝나는 파일
+  
+#### util.js
+```js
+export function addNumber(a, b) {
+    return a;
+}
+```
+- 코드에 버그가 있기 때문에 테스트 코드 작성시 실패
+
+#### util.test.js
+```js
+import { addNumber } from "./util";
+
+it('add two numbers', () => {
+  const result = addNumber(1, 2);
+  expect(result).toBe(3);
+});
+```
+- `it`, `expect` 는 제스트에서 테스트 코드를 작성할 때 사용
+
+```
+npm test
+```
+
+- CI(continuous integration)와 같이 watch 모드가 필요 없는 환경에서는 명령어로 테스트 코드 실행
+```
+CI=true npm test
+```
+
+#### 설정 파일 추출하기
+> npm run eject 
+
+- cra 의 내부 설정 파일이 밖으로 노출
+  + 바벨이나 웹팩 설정 변경 가능
+- cra 에서 개선하거나 추가된 기능이 단순한 패키지의 버전 업이 적용되지 않음(단점)
+- 리액트 툴체인에 익숙하지 않는다면 추천하지 않음 
