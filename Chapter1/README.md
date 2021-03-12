@@ -458,3 +458,43 @@ npm run build
 - build/static/js 폴더 밑에 `{숫자}.{해시값}.chunk.js` 파일이 추가됨.
   + 배포 환경에서 브라우저 캐싱 효과를 보기 위해 해시값 추가
 - Todo.js 파일은 별도 JS 파일로 분리 되었으며, 필요한 경우에만 내려받도록 구현  
+
+### 1.3.5 환경 변수 사용하기
+> cra 에서 빌드 시점에 환경 변수를 코드로 전달 가능  
+> 환경 변수는 개발, 테스트, 배포 환경별 다른 값 적용 시 유용  
+> 전달된 환경 변수에서는 코드에서 `process.env.{환경 변수 이름}`으로 접근 가능
+
+#### NODE_ENV 환경 변수 이용
+> NODE_ENV 환경 변수의 값 결정 방법
+- npm start 로 실행하면 development
+- npm test 로 실행하면 test
+- npm run build 로 실행하면 production
+
+#### 기타 환경 변수 이용하기
+> NODE_ENV 환경 변수 외에 다른 환경 변수는 `REACT_APP_` 접두사를 붙힘
+
+```js
+process.env.REACT_APP
+```
+
+환경 변수는 셸에서 입력하거나 `.env` 파일을 이용해 입력 가능
+
+**셸에서 입력**
+```
+REACT_APP_API_URL=api.myapp.com npm start
+```
+
+**`.env`파일로 입력**
+> 코드 참조!!
+
+```js
+console.log(`REACT_APP_DATA_API = ${process.env.REACT_APP_DATA_API}`);
+console.log(`REACT_APP_LOGIN_API = ${process.env.REACT_APP_LOGIN_API}`);
+```
+
+> npm start 로 실행하면 `.env.development` 파일 내용 출력
+
+*npm 버전이 로컬 머신의 `npm_version` 환경의 변수에 저장되어있는 경우*
+```
+REACT_APP_NODE_VERSION=$npm_version
+```
