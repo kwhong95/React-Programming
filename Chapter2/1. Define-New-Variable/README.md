@@ -166,7 +166,7 @@ console.log(arr); // [100, 20, 300]
     - `Object.preventExtensions`
     - `Object.seal`
     - `Object.freeze`
-#### `const`로 정의된 변수에 재할당은 불가능하
+#### `const`로 정의된 변수에 재할당은 불가능하다
 ```js
 const bar = { prop1: 'a' };
 bar = { prop2: 123 }; // 에러 발생
