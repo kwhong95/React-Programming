@@ -1,6 +1,6 @@
 import './App.css';
 import Button from "./Button3";
-import Box from "./Box2";
+import Box from "./Box4";
 
 function App() {
   return (
