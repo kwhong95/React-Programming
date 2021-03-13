@@ -82,5 +82,92 @@ var myVar = 2;
    - 상수처럼 쓸 값도 무조건 재할당 가능한 변수로 생성
    - 재할당 불가능 변수 사용: 코드의 복잡도가 낮아짐, 가독성은 높아짐
     
+## 2.1.2 `var` 의 문제를 해결하는 `const`, `let`
+> `const`, `let` 은 **블록 스코프**다
 
-    
+#### 블록 스코프에서는 블록을 벗어나면 사용할 수 없다
+```js
+if (true) {
+    const i = 0;
+}
+console.log(i); // 참조 에러
+```
+
+#### 블록 스코프에서 같은 이름을 갖는 변수의 사용 예
+```js
+let foo = 'bar1';
+console.log(foo); // bar1
+if (true) {
+    let foo = 'bar2'
+    console.log(foo); // bar2
+}
+console.log(foo); // bar1
+```
+> 마지막 foo 변수는 같은 블록에서 정의한 `bar1`을 출력한다
+
+### `const, let` 에서의 호이스팅
+> 호이스팅은 일어나지만, 정의하기 이전에 변수 사용시 *참조 에러* 발생
+```js
+console.log(foo); // 참조 에러
+const foo = 1;
+```
+- 이러한 에러 발생은 **임시적 사각지대(temporal dead zone)**에 의해 발생한다.
+
+#### `const` 에서 호이스팅의 역할을 설명하기 위한 예
+```js
+const foo = 1;
+{
+    console.log(foo); // 참조 에러
+    const foo = 2;
+}
+```
+- 블록 안의 변수가 호이스팅 되지 않았다면 *참조 에러*는 발생하지 않았을 것
+- 여기서 호이스팅의 역할을 짐작할 수 있음
+
+#### `var` 에서 호이스팅의 효과를 확인하는 코드
+```js
+var foo = 1;
+(function () {
+    console.log(foo); // undefined
+    var foo = 2;
+})
+```
+
+### `const` 변수를 재할당 불가능하게 만든다
+> `let, var`로 정의된 변수는 재할당 가능하다.  
+> 재할당 불가 변수는 프로그램의 복잡도를 상당히 낮춰주므로 되도록 사용을 권장한다.
+
+#### `const`로 정의된 변수만 재할당 불가능하다
+```js
+const bar = 'a';
+bar = 'b'; // 에러 발생
+var foo = 'a';
+foo = 'b';
+let value = 'a';
+value = 'b';
+```
+
+#### `const` 로 정의해도 객체의 내부 속성값은 수정 가능하다
+```js
+const bar = { prop1: 'a' };
+bar.prop1 = 'b';
+bar.prop2 = 123;
+console.log(bar); // { prop1: 'b', prop2: 123 }
+const arr = [10, 20];
+arr[0] = 100;
+arr.push(300);
+console.log(arr); // [100, 20, 300]
+```
+
+#### 불가능하게 하고싶다면?
+> `immer`, `immutable.js`등의 외부 패키지 활용 권장
+
+- 단지 수정만할 수 없도록 차단하는 방법
+    - `Object.preventExtensions`
+    - `Object.seal`
+    - `Object.freeze`
+#### `const`로 정의된 변수에 재할당은 불가능하
+```js
+const bar = { prop1: 'a' };
+bar = { prop2: 123 }; // 에러 발생
+```
