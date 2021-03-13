@@ -2,4 +2,5 @@
 
 ## 목차
 
-### 2.1 [변수를 정의하는 새로운 방법]: `const, let`
+### 2.1 [변수를 정의하는 새로운 방법: `const, let`](https://github.com/kwhong95/React-Programming/tree/master/Chapter2/1.%20Define-New-Variable)
+### 2.2 [객체와 배열의 사용성 개선]()
