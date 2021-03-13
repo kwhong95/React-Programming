@@ -533,3 +533,128 @@ npm install classnames
 
 > 가독성 개선 완료 (코드 참조)
 
+### 1.4.3 Sass 로 작성하기
+- CSS 와 비슷하나 별도의 문법을 이용해 생산성이 높은 스타일 코드 작성 가능
+- **변수, 믹스인(mixin)** 개념을 이용해 스타일 코드 재사용 가능
+```scss
+$sizeNormal: 100px;
+
+.box {
+  width: $sizeNormal;
+  height: 80px;
+}
+
+.button {
+  width: $sizeNormal;
+  height: 50px;
+}
+```
+- 변수를 정의할 수 있음 > 중복 제거 가능
+- Sass 문법으로 작성한 파일은 빌드 단꼐를 거쳐서 CSS 파일로 변환
+
+```
+npm install node-scss
+```
+
+- JS 의 모듈 시스템과 비슷하게 다른 scss 파일을 가져옴
+- 다른 scss 파일에 정의된 변수 사용 가능(재사용 가능) > 모듈 시스템
+
+### 1.4.4 css-in-js로 작성하기
+> 리액트의 인기에 힘입어 비교적 최근에 떠오르는 방법  
+- CSS 코드 가 JS 안에서 관리되기 때문에 공통되는 CSS 코드를 변수로 관리 가능  
+- 동적으로 CSS 코드를 작성하기 쉬움
+- 대표적으로 리액트에는 `styled-components`가 있음
+
+```
+npm install styled-components
+```
+
+```js
+const BoxCommon = styled.div`
+  height: 50px;
+  background: #aaaaaa;
+`;
+
+const BoxBig = styled(BoxCommon)`
+  width: 200px;
+`;
+
+const BoxSmall = styled(BoxCommon)`
+  width: 100px;
+`;
+
+function Box({ size }) {
+  if(size === 'big') {
+    return <BoxBig>큰 박스</BoxBig>
+  } else {
+    return <BoxSmall>작은 박스</BoxSmall>
+  }
+}
+
+```
+
+- 클래스 상속처럼 컴포넌트를 확장해서 새로운 `styled-components` 생성
+- 일반적인 리액트 컴포넌트처럼 사용 가능
+- 동적 스타일 또한 적용 가능하다
+```js
+const BoxCommon = styled.div`
+    width: ${props => (props.isBig ? 200 : 100)}px;
+    height: 50px;
+    background: #aaaaaa; 
+`;
+```
+
+> 컴포넌트의 속성 값을 매개변수로 갖는 함수를 작성 가능(Template Literal)
+
+## 1.5 단일 페이지 애플리케이션 만들기
+> 리액트는 단일 페이지 애플리케이션(single page application, SPA) 방식으로 개발하는 것이 정석이다.
+
+**동작 원리**
+- 초기 요청 시 서버에서 첫 페이지를 처리
+- 이후 라우팅은 클라이언트에서 처리
+- 페이지 전환 클라이언트에서 처리 > 네이티브한 동작
+  + 즉, 페이지 전환 요청시 HTML 파일을 요청하는 전통적인 방식이 아닌 필요한 데이터만 요청해서 자체적인 라우팅 기능을 구현
+
+### 1.5.1 브라우저 히스토리 API
+> SPA 구현 시 2가지 기능 필요
+- JS 에서 브라우저로 페이지 전환 요청을 보냄, 단 브라우저는 서버로 요청 X
+- 사용자 페이지 전황 요청은 JS 에서 처리 가능. 이때도 브라우저는 서버로 요청 X
+- 위 조건 만족 브라우저 API: `pushState`, `replaceState` 함수 및 `popstate` 이벤트  
+  + 히스토리에 state 를 저장하는 Stack 을 활용
+```js
+export default function App() {
+  useEffect(() => {
+    window.onpopstate = function(event) {
+      console.log(`location: ${document.location}, state ${event.state}`)
+    };
+  }, []);
+
+  return (
+      <div>
+        <button onClick={() => window.history.pushState('v1', '', '/page1' )}>
+          page1
+        </button>
+        <button onClick={() => window.history.pushState('v2', '', '/page2')}>
+          page2
+        </button>
+      </div>
+  )
+}
+```
+**코드 동작 원리 분석**
+> 버튼을 클릭해보자!
+- 서버 요청 X, 화면 변화 X > 스택에 state 가 쌓일 뿐
+- `onpopstate` 함수 호출 X
+- `useEffect` : 이벤트 핸들러 등록, API 호출 부수 효과 처리 등의 REACT Hook
+  + `popstate` 이벤트 핸들러 등록 용도
+- 뒤로 가기 인터페이스 클릭 시 기존에 쌓인 스택이 비워질 때까지 `onpopstate` 함수가 호출
+
+```
+router-test > App.js 코드 참조!
+```
+- 현재 페이지 정보를 `pageName` 상태값으로 관리
+- `popstate` 이벤트가 발생하면 페이지를 전환하는 의미로 `pageName` 상태값을 수정
+- 페이지 버튼을 클릭 시 이벤트 처리 함수를 실행
+  + 각 페이지 컴포넌트가 렌더링되며, `pageName`이 없으면 Home 페이지를 렌더링
+  
+  
