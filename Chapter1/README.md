@@ -649,8 +649,38 @@ export default function App() {
   + `popstate` 이벤트 핸들러 등록 용도
 - 뒤로 가기 인터페이스 클릭 시 기존에 쌓인 스택이 비워질 때까지 `onpopstate` 함수가 호출
 
-```
-router-test > App.js 코드 참조!
+```js
+export default function App() {
+  const [pageName, setPageName] = useState('');
+
+  useEffect(() => {
+      window.onpopstate = event => {
+          setPageName(event.state);
+      }
+  }, []);
+
+  function onClick1() {
+      const pageName = 'page1';
+      window.history.pushState(pageName, '', '/page1')
+      setPageName(pageName);
+  }
+
+  function onClick2() {
+      const pageName = 'page2';
+      window.history.pushState(pageName, '', '/page2');
+      setPageName(pageName);
+  }
+
+  return (
+      <div>
+        <button onClick={onClick1}>page1</button>
+        <button onClick={onClick2}>page2</button>
+          {!pageName && <Home />}
+          {pageName === 'page1' && <Page1 />}
+          {pageName === 'page2' && <Page2 />}
+      </div>
+  );
+}
 ```
 - 현재 페이지 정보를 `pageName` 상태값으로 관리
 - `popstate` 이벤트가 발생하면 페이지를 전환하는 의미로 `pageName` 상태값을 수정
@@ -658,3 +688,80 @@ router-test > App.js 코드 참조!
   + 각 페이지 컴포넌트가 렌더링되며, `pageName`이 없으면 Home 페이지를 렌더링
   
   
+### 1.5.2 react-router-dom 사용하기
+> 브라우저 히스토리 API 사용시 페이지 라우팅 처리를 직접 구현 가능하나 신경 써야할 부분이 많다.
+
+**react-router-dom 설치**
+```shell
+npm install react-router-dom
+```
+
+```js
+import React from 'react';
+import {Route, Link, BrowserRouter} from 'react-router-dom';
+import { Rooms }from './Rooms.js';
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <div style={{ padding: 20, border: '5px solid gray'}}>
+                <Link to='/'>홈</Link>
+                <br />
+                <Link to='/photo'>사진</Link>
+                <br />
+                <Link to='/rooms'>방 소개</Link>
+                <br />
+                <Route exact path='/' component={Home} />
+                <Route path='/photo' component={Photo} />
+                <Route path='/rooms' component={Rooms} />
+            </div>
+        </BrowserRouter>
+    )
+}
+
+function Home() {
+    return <h2>홈페이지 > 원하는 페이지 버튼을 클릭하시오.</h2>
+}
+function Photo() {
+    return <h2>여기서 사진을 감상하시오.</h2>
+}
+```
+- Rooms 컴포넌트는 별도 파일로 구현
+- `react-router-dom`을 사용하기 위해서는 전체를 `BrowserRouter` 컴포넌트로 감싸야 함
+- 페이지 전환시 `Link` 컴포넌트 사용 > 속성 `to` : 이동할 주소
+- `Route` 컴포넌트: 각 페이지 정의 
+- 속성 `exact`: 주소가 완전히 일치해야 렌더링
+- 같은 path 속성값을 가지는 Route 컴포넌트를 여러번 작성 가능
+
+```js
+import React from 'react';
+import { Route, Link } from 'react-router-dom';
+
+export function Rooms ({ match }) {
+    return (
+        <div>
+            <h2>여기는 방을 소개하는 페이지입니다.</h2>
+            <Link to={`${match.url}/blueRoom`}>파란 방</Link>
+            <br />
+            <Link to={`${match.url}/greenRoom`}>초록 방</Link>
+            <br />
+            <Route path={`${match.url}/:roomId`} component={Room} />
+            <Route
+                exact
+                path={match.url}
+                render={() => <h3>방을 선택해 주세요</h3>}
+            />
+        </div>
+    );
+}
+
+function Room({ match }) {
+    return <h2>{`${match.params.roomId} 방을 선택하셨습니다.`}</h2>;
+}
+```
+
+- Rooms 컴포넌트 내부에는 또 라우팅 처리 코드가 존재
+- `Route`를 통해 렌더링되는 컴포넌트는 `match` 속성 값 사용 가능
+  + `match.url`: `Route` 컴포넌트의 `path` 속성값과 동일
+- `Route` 컴포넌트의 `path` 속성값에서 콜론을 사용하면 파라미터를 나타냄
+- 추출된 파라미터는 `match.params.{파라미터 이름}` 형식
