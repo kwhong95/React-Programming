@@ -30,6 +30,8 @@ async function getData() {
 getData().catch(error => console.log(error)); // 에러 발생: 123
 ```
 
+----
+
 ### `await` 키워드를 사용하는 방법
 > async await 함수 내부에서 사용
 
@@ -63,6 +65,8 @@ function getData() {
     console.log(data);
 }
 ```
+
+----
 
 ### async await 는 프로미스보다 가독성이 좋다
 
@@ -101,3 +105,72 @@ async function getDataAsync() {
     return asyncFunc3(data1, data2);
 }
 ```
+
+## 2.5.2 async await 활용하기
+### 비동기 함수를 병렬로 실행하기
+> 여러 비동기 함수에 각각 `await` 키워드를 사용해서 호출하면 순차적으로 실행
+
+#### 순차적으로 실행되는 비동기 코드
+```js
+async function getData() {
+    const data1 = await asyncFunc1();
+    const data2 = await asyncFunc2();
+    // ...
+}
+```
+- 의존성이 없다면 동시에 실행하는게 좋음
+- 두 개의 프로미스를 먼저 생성
+- `await` 키워드를 나중에 사용하면 병렬로 실행되는 코드가 됨
+
+#### await 키워드를 나중에 사용해서 병렬로 실행되는 비동기 코드
+```js
+async function getData() {
+    const p1 = asyncFunc1();
+    const p2 = asyncFunc2();
+    const data1 = await p1;
+    const data2 = await p2;
+    // ...
+}
+```
+
+#### `Promise.all`을 사용해서 병렬로 실행하기
+```js
+async function getData() {
+    const [data1, data2] = await Promise.all([asyncFunc1, asyncFunc2]);
+    // ...
+}
+```
+
+----
+
+### 예외 처리하기
+
+#### 동기와 비동기 함수 모두 `catch` 문에서 처리된다
+```js
+async function getData() {
+    try {
+        await doAsync();
+        return doSync();
+    } catch (error) {
+        console.log(error);
+    }
+}
+```
+
+---
+### Thenable 을 지원하는 async await
+> Thenable = 프로미스처럼 동작하는 객체 = `then` 메서드를 가진 객체
+
+#### async await 함수에서 Thenable 을 사용한 예
+```js
+class ThenableExample {
+    then(resolve, reject) {
+        setTimeout(() => resolve(123), 1000);
+    }
+}
+async function asyncFunc() {
+    const result = await new ThenableExample();
+    console.log(result); // 123
+}
+```
+
