@@ -200,3 +200,72 @@ function requestData() {
 }
 requestData().then(data => console.log(data));
 ```
+
+## 2.4.2 프로미스 활용하기
+### 병렬로 처리하기: `Promise.all`
+> 여러 개의 프로미스를 병렬로 처리할 때 사용하는 함수
+
+- `then` 메서드를 체인 연결하면 각각의 비동기 처리가 병렬로 체인으로 연결하면 비동기 처리가 병렬로 처리 되지 않는 단점이 있다.
+
+#### 순차적으로 실행되는 비동기 코드
+```js
+requestData() 
+    .then(data => {
+        console.log(data);
+        return requestData2();
+    })
+    .then(data => {
+        console.log(data);
+    })
+```
+- 비동기 함수 간에 **의존성**이 없다면 병렬로 처리하는게 더 빠르다.
+
+#### 병렬로 실행되는 코드
+```js
+requestData1().then(data =>  console.log(data));
+requestData2().then(data => console.log(data));
+```
+
+#### `Promise.all`을 사용하는 코드
+```js
+Promise.all([requestData1(), requestData2()]).then(([data1, data2]) => {
+    console.log(data1, data2);
+})
+```
+
+---
+
+- 프로미스를 반환하고, 만약 하나라도 거부됨 상태가 된다면 반환하는 프로미스도 거부됨 상태가 된다.
+
+---
+
+### 가장 빨리 처리된 프로미스 가져오기: `Promise.race`
+> 가장 빨리 처리된 프로미스를 반환하는 함수
+
+#### `Promise.race`를 사용한 간단한 코드
+```js
+Promise.race([
+    requestData(),
+        new Promise((_, reject) => setTimeout(reject, 3000)),
+])
+    .then(data => console.log(data))
+    .catch(error => console.log(error))
+```
+
+- 3초안에 데이터를 받으면 `then`메서드가 호출되고, 그렇지 않으면 `catch`메서드가 호출
+
+---
+
+### 프로미스를 이용한 데이터 캐싱
+> 처리됨 상태가 되면 상태를 유지하는 프로미스 성질을 이용해 데이터 캐싱이 가능하다.
+
+#### 프로미스로 캐싱 기능 구현하기
+```js
+let catchedPromise;
+function getData() {
+    catchedPromise = catchedPromise || requestData();
+    return catchedPromise;
+}
+getData().then(v => console.log(v));
+getData().then(v => console.log(v));
+```
