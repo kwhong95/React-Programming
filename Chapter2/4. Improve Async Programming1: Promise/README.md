@@ -269,3 +269,107 @@ function getData() {
 getData().then(v => console.log(v));
 getData().then(v => console.log(v));
 ```
+
+## 2.4.3 프로미스 사용 시 주의할 점
+### `return` 키워드 깜빡하지 않기
+> return 사용하지 않으면 프로미스 객체의 데이터는 `undefined`가 된다.
+
+#### `return`키워드를 깜빡한 코드
+```js
+Promise.resolve(10)
+    .then(data => {
+        console.log(data);
+        Promise.resolve(20);
+    })
+    .then(data => {
+        console.log(data);
+    })
+```
+
+### 프로미스는 불변 객체라는 사실 명심하기
+
+#### 프로미스가 수정된다고 생각하고 작성한 코드
+```js
+function requestData() {
+    const p = Promise.resolve(10);
+    p.then(() => {
+        return 20;
+    });
+    return p;
+}
+requestData().then(v => {
+    console.log(v); // 10
+})
+```
+
+- `then` 메서드는 기존 객체를 수정하지 않고, 새로운 프로미스를 반환함
+
+#### `then` 메서드로 생성된 프로미스를 반환하는 코드
+```js
+function requestData() {
+    return Promise.resolve(10).then(v => {
+        return 20;
+    });
+}
+```
+
+### 프로미스를 중첩해서 사용하지 않기
+> 중첩 사용 시 콜백 패턴처럼 코드가 복잡해지므로 사용하지 않길 권장한다.
+
+#### 프로미스를 중첩해서 사용한 코드
+```js
+requestData1().then(result1 => {
+    requestData2(result1).then(result2 => {
+        // ...
+  });
+});
+```
+
+#### 중첩된 코드를 리팩토링한 코드
+```js
+requestData1()
+    .then(result1 => {
+        return requestData2(result1);
+    })
+    .then(result2 => {
+    // ...
+})
+```
+
+#### `Promise.all`을 사용해서 변수 참조 문제를 해결한 코드
+```js
+requestData1()
+    .then(result1 => {
+        return Promise.all([result1, requestData2(result1)]);
+    })
+    .then(([result1, result2]) => {
+    // ...
+});
+```
+- `Promise.all` 함수로 입력하는 배열에 프로미스가 아닌 값을 넣으면,  
+그 값 그대로 이행됨 상태인 프로미스 처럼 처리됨.
+  
+### 동기 코드의 예외 처리 신경 쓰기
+> 동기(sync) 코드와 같이 사용할 때는 *예외 처리*에 신경 써야함.
+
+#### 동기 코드에서 발생한 예외가 처리되지 않는 코드
+```js
+function requestData() {
+    doSync();
+    return fetch()
+            .then(data => console.log(data))
+            .then(error => console.log(error));
+}
+```
+
+#### 동기 코드도 예외처리가 되는 코드
+```js
+function requestData() {
+    return fetch()
+            .then(data => {
+                doSync();
+                console.log(data);
+            })
+            .catch(error => console.log(error));
+}
+```
