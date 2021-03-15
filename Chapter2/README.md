@@ -7,3 +7,4 @@
 ### 2.3 [강화된 함수의 기능](https://github.com/kwhong95/React-Programming/tree/master/Chapter2/3.%20Features%20of%20enhanced%20functions)
 ### 2.4 [향상된 비동기 프로그래밍 1: 프로미스](https://github.com/kwhong95/React-Programming/tree/master/Chapter2/4.%20Improve%20Async%20Programming1:%20Promise)
 ### 2.5 [향상된 비동기 프로그래밍 2: async await](https://github.com/kwhong95/React-Programming/tree/master/Chapter2/5.%20Improve%20Async%20Programming2:%20async%20await)
+### 2.6 [템플릿 리터럴로 동적인 문자열 생성하기]()

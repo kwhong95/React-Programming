@@ -173,4 +173,3 @@ async function asyncFunc() {
     console.log(result); // 123
 }
 ```
-
