@@ -101,3 +101,111 @@ function MyComponent() {
 - 위 코드는 화면을 어떻게 그리는지 나타냄 > **명령형(imperative) 프로그래밍**
 - 아래 코드는 화면에 무엇을 그리는지 나타냄 > **선언형(declarative) 프로그래밍**
 - 추상화: `명령형 < 선언형 ` ->  비즈니스 로직에 좀 더 집중 가능
+
+## 3.1.2 컴포넌트의 속성값과 상태값
+### 속성값과 상태값으로 관리하는 UI 데이터
+> 컴포넌트의 상태값: 컴포넌트가 관리하는 데이터  
+> 컴포넌트의 속성값: 부모 컴포넌트로부터 전달받는 데이터
+
+#### 컴포넌트의 상태값을 사용하지 않은 코드
+```js
+let color = 'red';
+function  MyComponent() {
+    function onClick() {
+        color = 'bule';
+    }
+    return (
+        <button style={{ backgroundColor: color }} onClick=={onClick}>
+            좋아요
+        </button>
+    );
+}
+```
+
+#### 컴포넌트의 상태값을 사용하는 코드
+
+```js
+import React, {useState} from "react";
+
+function MyComponent() {
+    const [color, setColor] = useState('red');
+    function onClick() {
+        setColor('blue');
+    }
+    return(
+        <button style={{ backgroundColor: color }} onClick={onClick}>
+            좋아요
+        </button>
+    )
+}
+```
+
+#### 속성값을 이용한 코드
+```js
+function Title(props) {
+    return <p>{props.title}</p>;
+}
+```
+
+#### 부모 컴포넌트에서 속성값을 내려 주는 코드
+```js
+function Todo() {
+    const [count, setCount] = React.useState(0);
+    function onClick() {
+        setCount(count + 1);
+    }
+    return (
+        <div>
+            <Title title={`현재 카운트: ${count}`} />
+            <button onClick={onClick}>증가</button>
+        </div>
+    );
+}
+```
+
+#### `React.meno` 를 사용한 코드
+> `title` 속성값이 변경될 때만 렌더링되길 원할 때
+```js
+function Title(props) {
+    return <p>{props.title}</p>;
+}
+export default React.memo(Title);
+```
+
+#### 사용된 컴포넌트 별로 관리되는 상태값
+```js
+function App() {
+    return (
+        <div>
+            <MyComponent />
+            <MyComponent />
+        </div>
+    );
+}
+```
+---
+### 불변 객체로 관리하는 속성값과 상태값
+> 속성값은 **불변(immutable) 변수**이지만 상태값은 아니다.  
+> 하지만 **불변 변수**로 관리하는 게 좋다.
+#### 속성값 변경을 시도하는 코드
+```js
+function Title(props) {
+    props.title = 'abc';
+    // ...
+}
+```
+
+#### 상태값을 직접 수정하는 코드
+```js
+function MyComponent() {
+    const [count, setCount] = useState({ value: 0 });
+    function onClick() {
+        count.value = 2;
+        // ...
+        setCount(count );
+    }
+}
+```
+
+- 상태값을 직접 수정할 수 있지만 화면이 갱신되지 않음(리액트 인식 X)
+- 상태값 또한 불변 변수로 관리하는 것이 좋음(코드의 복잡성 낮아짐)
