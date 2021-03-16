@@ -209,3 +209,54 @@ function MyComponent() {
 
 - 상태값을 직접 수정할 수 있지만 화면이 갱신되지 않음(리액트 인식 X)
 - 상태값 또한 불변 변수로 관리하는 것이 좋음(코드의 복잡성 낮아짐)
+
+## 3.1.3 컴포넌트 함수의 반환값
+
+#### 컴포넌트 함수가 반환할 수 있는 값
+```js
+return <MyComponent title="안녕하세요"/>;
+return <p>안녕하세요</p>;
+return '안녕하세요';
+return 123;
+return [<p key="a">안녕하세요</p>, <p key="b">반갑습니다</p>];
+return (
+    <React.Fragment>
+        <p>안녕하세요</p>
+        <p>반갑습니다</p>
+    </React.Fragment>
+);
+return (
+    <>
+        <p>안녕하세요</p>
+        <p>반갑습니다</p>
+    </>
+);
+return null;
+return false;
+return ReactDOM.createPortal(<p>안녕하세요</p>, domNode);
+```
+- `creatPortal` : 현재 컴포넌트 위치와 상관없이 특정 돔 요소에 렌더링 가능
+
+#### 컴포넌트 함수에서 조건부 렌더링을 하는 코드
+```js
+function MyComponent({ title }) {
+    return title.length > 0 && <p>{title}</p>
+}
+```
+
+#### 리액트 포털을 사용한 코드
+```js
+function Modal({ title, desc }) {
+    const domNode = document.getElementById('modal');
+    return ReactDOM.createPortal(
+        <div>
+            <p>{title}</p>
+            <p>{desc}</p>
+        </div>,
+        domNode,
+    );
+}
+```
+- 특정 돔 요소에 리액트 요소를 렌더링 가능
+- `Modal` 컴포넌트가 사용된 위치와 상관없이 렌더링할 위치를 선택
+
