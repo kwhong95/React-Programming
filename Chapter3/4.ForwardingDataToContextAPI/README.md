@@ -110,3 +110,108 @@ function Greeting() {
 - Profile 컴포넌트 > `React.memo` > 속성값이 없어 최초 한 번만 렌더링
 - Profile 컴포넌트의 렌더링 여부와 상관없이 Greeting 컴포넌트의 Consumer 컴포넌트는 다시 렌더링
 - 즉, 중간 컴포넌트의 렌더링 여부와 상관없이 Provider 컴포넌트로 새로운 데이터 입력 시 Consumer 컴포넌트가 다시 렌더링되는 것이 보장됨
+
+## 3.4.2 Context API 활용하기
+> 여러 Context 객체를 중첩해서 사용, Consumer 컴포넌트를 사용하는 하위 컴포넌트에서 Context 데이터를 수정
+
+### 여러 Context 를 중첩해서 사용하기
+```js
+const UserContext = React.createContext('');
+const ThemeContext = React.createContext('dark');
+
+function App() {
+    return (
+        <div>
+            <ThemeContext.Provider value='light'>
+                <UserContext.Provider value='mike'>
+                    <div>상단 메뉴</div>
+                    <Profile />
+                    <div>하단 메뉴</div>
+                </UserContext.Provider>
+            </ThemeContext.Provider>
+        </div>
+    );
+}
+
+function Profile() {
+    return (
+        <div>
+            <Greeting />
+            {/* ... */}
+        </div>
+    );
+}
+
+function Greeting() {
+    return (
+        <ThemeContext.Consumer>
+            {theme => (
+                <UserContext.Consumer>
+                    {username => (
+                        <p
+                            style={{ color: theme === 'dark' ? 'gray' : 'green' }}
+                        >{`${username}님 안녕하세요`}</p>
+                    )}
+                </UserContext.Consumer>
+            )}
+        </ThemeContext.Consumer>
+    );
+}
+```
+
+- 두 개의 Provider & Consumer 컴포넌트 중첩 사용 가능
+- 렌더링 성능상이점이 없으나 데이터의 종류별로 Context 를 생성하면 렌더링 성능상 이점이 있다.
+- 데이터 변경 시 해당 Consumer 컴포넌트만 렌더링 되기 때문
+
+---
+
+### 하위 컴포넌트에서 Context 데이터를 수정하기
+> 상태를 변경하는 디스패치(dispatch) 함수로 여러 컴포넌트에서 데이터 변경 할 수 있음
+
+#### Context 데이터를 수정할 수 있는 함수 전달하기
+```js
+const UserContext = React.createContext({ username: '', helloCount: 0 });
+const SetUserContext = React.createContext(() => {});
+
+function App() {
+    const [user, setUser] = useState({ username: 'mike', helloCount: 0 });
+    return (
+        <div>
+            <SetUserContext.Provider value={setUser}>
+                <UserContext.Provider value={user}>
+                    <Profile />
+                </UserContext.Provider>
+            </SetUserContext.Provider>
+        </div>
+    )
+}
+```
+
+#### 하위 컴포넌트에서 콘텍스트 데이터 수정하기
+```js
+function Greeting() {
+    return (
+        <SetUserContext.Consumer>
+            {setUser => (
+                <UserContext.Consumer>
+                    {({ username, helloCount }) => (
+                        <React.Fragment>
+                            <p>{`${username}님 안녕하세요`}</p>
+                            <p>{`인사 횟수: ${helloCount}`}</p>
+                            <button
+                                onClick={() => 
+                                    setUser({ username, helloCount: helloCount + 1 })
+                                }
+                            >
+                                인사하기
+                            </button>
+                        </React.Fragment>
+                    )}
+                </UserContext.Consumer>
+            )}
+        </SetUserContext.Consumer>
+    )
+}
+```
+
+- `helloCount` 속성만 변경하는데도, 사용자 데이터를 만들어서 `setUser` 함수에 입력해야 하는 단점
