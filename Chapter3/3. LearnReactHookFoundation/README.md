@@ -123,3 +123,75 @@ function onClick() {
 }
 ```
 - 안정화 되지 않은 API 는 아님
+
+## 3.3.2 컴포넌트에서 부수 효과 처리하기: `useEffect`
+> 함수 실행 시 함수 외부의 상태를 변경하는 연산을 부수 효과라고 함
+
+#### `useEffect` 훅의 사용 예
+
+```js
+import React, {useState, useEffect}  from "react";
+
+function MyComponent() {
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        document.title = `업데이트 횟수: ${count}`;
+    });
+    return <button onClick={() => setCount(count + 1)}>증가</button>
+}
+```
+- 부수 효과 함수는 렌더링 결과가 실제 돔에 반영된 후 호출
+- 버튼 클릭 시 다시 렌더링되고, 렌더링이 끝나면 부수 효과 함수가 호출
+
+---
+
+### 컴포넌트에서 API 호출하기
+#### `useEffect` 훅에서 API 호출하기
+
+```js
+import React, {useEffect, useState} from "react";
+
+function Profile({ userId }) {
+    const [user, setUser] = userState(null);
+    useEffect(
+        () => {
+            getUserApi(userId).then(data => setUser(data));
+        },
+        [userId],
+    );
+    return (
+        <div>
+            {!user && <p>사용자 정보를 가져오는 중...</p>}
+            {user && (
+                <>
+                    <p>{`name is ${user.name}`}</p>
+                    <p>{`age is ${user.age}`}</p>
+                </>
+            )}
+        </div>
+    );
+}
+```
+- 부수 효과 함수는 렌더링할 때마다 호출 > API 통신을 불필요하게 많이 함
+- 두 번째 매개변수로 배열을 입력 > 배열의 값이 변경되는 경우에만 함수가 호출(의존성 배열)
+
+---
+
+### 이벤트 처리 함수를 등록하고 해제하기
+#### `useEffect` 훅을 이용해서 이벤트 처리 함수를 등록하고 해제하기
+
+```js
+import React, { useEffect, useState } from "react";
+
+function WidthPrinter() {
+    const [width, setWidth] = useState(window.innerWidth);
+    useEffect(() => {
+        const onResize = () => setWidth(window.innerWidth);
+        window.addEventListener('resize', onResize);
+        return () => {
+            window.removeEventListener('resize', onResize);
+        };
+    }, []);
+    return <div>{`width is ${width}`}</div>;
+}
+```
