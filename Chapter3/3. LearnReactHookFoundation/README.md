@@ -195,3 +195,57 @@ function WidthPrinter() {
     return <div>{`width is ${width}`}</div>;
 }
 ```
+
+## 3.3.3 훅 직접 만들기
+> 리액트가 제공하는 훅을 이용해 커스텀(custom) 훅 생성이 가능
+
+### `useUser` 커스텀 훅
+```js
+function useUser(userId) {
+    const [user, setUser] = useState(null);
+    useEffect(() => {
+        getUserApi(userId).then(data => setUser(data));
+    }, [userId]);
+    return user;
+}
+
+function Profile({ userId }) {
+    const user = useUser(userId);
+    // ...
+}
+```
+
+### `useWindowWidth` 커스텀 훅
+
+```js
+import { useEffect, useState } from "react";
+
+function useWindowWidth() {
+    const [width, setWidth] = useState(window.innerWidth);
+    useEffect(() => {
+        const onResize = () => setWidth(window.innerWidth);
+        window.addEventListener('resize', onResize);
+        return () => {
+            window.removeEventListener('resize', onResize);
+        }
+    }, []);
+    return width;
+}
+function WidthPrinter() {
+    const width = useWindowWidth();
+    return <div>{`width is ${width}`}</div>
+}
+```
+
+---
+
+### `useMounted` 커스텀 훅
+> 마운트란 컴포넌트의 첫 번째 렌더링 결과가 실제 돔에 반영된 상태
+
+```js
+function useMounted() {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
+    return mounted;
+}
+```
