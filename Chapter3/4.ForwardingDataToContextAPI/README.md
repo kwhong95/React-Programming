@@ -215,3 +215,46 @@ function Greeting() {
 ```
 
 - `helloCount` 속성만 변경하는데도, 사용자 데이터를 만들어서 `setUser` 함수에 입력해야 하는 단점
+
+## 3.4.3 Context API 사용시 주의할 점
+
+### 불필요한 렌더링이 발생하는 경우
+```js
+const UserContext = React.createContext({ username: '' });
+
+function App() {
+    const [username, setUsername] = useState('');
+    return (
+        <div>
+            <UserContext.Provier value={{ username }}>
+                // ...
+```
+
+- Context 데이타로 객체 전달 > 렌더링 시 새로운 객체 생성 
+
+#### 불필요한 렌더링이 발생하지 않는 코드
+```js
+function App() {
+    const [user, setUser] = useState({ username: '' });
+    return (
+        <div>
+            <UserContext.Provider value={user}>
+                // ...
+```
+
+### Provider 컴포넌트를 찾지 못하는 경우
+> 적절한 위치에서 사용하지 않으면 큰 텍스트 데이터가 전달되지 않음
+
+#### Consumer 컴포넌트가 Provider 컴포넌트를 찾지 못하는 경우
+```js
+const UserContext = React.createContext('unknown');
+
+function App() {
+    <div>
+        <UserContext.Provider value='mike'>
+            {/* ... */}
+        </UserContext.Provider>
+        <Profile />
+    </div>
+}
+```
