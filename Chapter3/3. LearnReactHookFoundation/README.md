@@ -249,3 +249,83 @@ function useMounted() {
     return mounted;
 }
 ```
+
+## 3.3.4 훅 사용 시 지켜야 할 규칙
+> 두 규칙을 지켜야 리액트가 각 훅의 상태를 제대로 기억할 수 있다.
+
+- 규칙 1: 하나의 컴포넌트에서 훅을 호출하는 순서는 항상 같아야 한다.
+- 규칙 2: 훅은 함수형 컴포넌트 또는 커스텀 훅 안에서만 호출되어야 한다.
+
+#### 훅 사용시 `규칙 1`을 위반한 경우
+```js 
+function MyComponent() {
+    const [value, setValue] = useState(0);
+    if (value === 0) {
+        const [v1, setV1] = useState(0);
+    } else {
+        const [v1, setV1] = useState(0);
+        const [v2, setV2] = useState(0);
+    }
+    // ...
+    for (let i = 0; i < value; i++) {
+        const [num, setNum] = useState(0);
+    }
+    // ...
+    function fun1() {
+        const [num, setNum] = useState(0);
+    }
+    // ...
+}
+```
+
+- 조건에 따라 훅을 호출하면 순서가 보장되지 않음
+- 루프 안에서 훅을 호출하는 것 또한 마찬가지
+- `func1`  함수가 언제 호출될지 알 수 없음
+
+---
+
+### 훅의 호출 순서가 같아야 하는 이유
+#### 여러 개의 훅 사용하기
+```js
+function Profile() {
+    const [age, setAge] = useState(0);
+    const [name, setName] = useState('');
+    // ...
+    useEffect(() => {
+        // ...
+        setAge(27);
+    }, []);
+}
+```
+- 리액트가 상태값을 구분할 수 있는 유일한 정보는 훅이 사용된 순서
+- 만약 조건문에 의해 `setAge` 함수가 실행되지 않는다면 `name` 이 `27` 로 설정되는 버그가 발생
+
+---
+
+### 리액트가 내부적으로 훅을 처리하는 방식
+#### 의사코드(pseudo-code) 로 표현한 리액트 내부 코드
+```js
+let hooks = null;
+
+export function useHook() { // 1
+    // ...
+    hooks.push(hookData); // 2
+}
+
+function process_a_component_rendering(component) { // 3
+    hooks = []; // 4 
+    component(); // 5
+    let hooksForThisComponent = hooks; // 6
+    hooks = null;
+    // ...
+}
+```
+
+1. 리액트가 내장하고 있는 훅!
+2. 각 훅 함수에서는 `hooks` 라는 배열에 자신의 데이터를 추가
+3. 렌더링 과정에서 하나의 컴포넌트를 처리하는 함수
+4. `hooks`를 빈 배열로 추가
+5. 컴포넌트 내부에서 훅을 사용한 만큼 `hooks` 배열에 데이터가 추가
+6. 생성된 배열을 저장하고 `hooks` 변수를 초기화
+
+> 이처럼 리액트는 훅이 사용된 순서를 저장하고 배열에 저장된 순서를 기반으로 훅을 관리함
