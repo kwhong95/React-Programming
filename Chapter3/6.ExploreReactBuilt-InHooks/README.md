@@ -219,3 +219,57 @@ function Profile() {
 - **SomeComponent** 하위의 모든 컴포넌트에서는 `dispatch`를 호출 가능
 - `useReducer` 훅의 `dispatch` 함수는 값이 변하지 않는 특징이 있어 불필요하게 자주 렌더링되지 않음
 
+## 3.6.5 부모 컴포넌트에서 접근 가능한 함수 구현하기: `useImperativeHandle`
+> 함수형 컴포넌트에도 메서드가 있는 것처럼 생성 가능
+
+### `useImperativeHandle` 훅으로 외부로 공개할 함수 정의하기
+#### 부모 컴포넌트에서 접근 가능한 함수 구현하기
+
+```js
+import React, { forwardRef, useState, useImperativeHandle } from "react";
+
+function Profile(props, ref) {
+    const [name, setName] = useState('');
+    const [age, setAge] = useState(0);
+    useImperativeHandle(ref, () => ({
+        addAge: value => setAge(age + value),
+        getNameLength: () => name.length,
+    }));
+    
+    return (
+        <div>
+            <p>{`name is ${name}`}</p>
+            <p>{`age is ${age}`}</p>
+            {/* ... */}
+        </div>
+    );
+}
+
+export default forwardRef(Profile);
+```
+
+- 부모 컴포넌트에서 입력한 `ref`객체를 직접 처리하기 위해 `forwardRef` 함수를 호출
+- `ref` 객체는 두 번째 매개변수로 전달
+- `useImperativeHandle` 훅으로 `ref`와 부모 컴포넌트에서 접근 가능한 여러 함수를 입력
+
+### `useImperativeHandle` 훅으로 정의한 함수를 외부에서 호출하기
+#### 부모 컴포넌트에서 자식 컴포넌트 함수 호출하기
+```js
+function Parent() {
+    const profileRef = useRef();
+    const onClick = () => {
+        if(profileRef.current) {
+            console.log('current name length: ',
+                profileRef.current.getNameLength());
+            profileRef.current.addAge(5);
+        }
+    };
+    return (
+        <div>
+            <Profile ref={profileRef} />
+            <button onClick={onClick}>add age 5</button>
+        </div>
+    );
+}
+```
+- **Profile 컴포넌트**에서 구현한 함수 호출(속성값으로 `ref` 객체 전딜)
