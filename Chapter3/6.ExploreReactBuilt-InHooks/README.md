@@ -273,3 +273,28 @@ function Parent() {
 }
 ```
 - **Profile 컴포넌트**에서 구현한 함수 호출(속성값으로 `ref` 객체 전딜)
+
+## 3.6.6 기타 리액트 내장 훅: `useLayoutEffect`, `useDebugValue`
+### `useLayoutEffect`
+> `useEffect` 훅과 거의 비슷하게 동작하지만 부수 효과 함수를 **동기**로 호출한다
+
+- 즉, 부수 효과 함수는 렌더링 결과가 돔에 반영된 직후 호출
+- `useLayoutEffect` 훅의 부수 효과 함수에서 연산을 많이 하면 브라우저가 먹통이 될 수 있으므로 주의
+- 특별한 이유가 없다면 `useEffect` 훅을 사용하는 것이 성능상 이점
+- 렌더링 직후 돔 요소의 값을 읽는 경우에는 이 훅을 사용하는 것이 적합
+
+### `useDebugValue`
+> 개발 편의를 위해 제공, 커스텀 훅의 내부 상태를 관찰, 디버깅에 도움
+
+#### `useDebugValue` 훅을 사용하는 코드
+```js
+function useToggle(initialValue) {
+    const [value, setValue] = useState(initialValue);
+    const onToggle = () => setValue(!value);
+    useDebugValue(value ? 'on' : 'off');
+    return [value, onToggle];
+}
+```
+- 디버깅 시 확인할 값을 `useDebugValue`훅의 매개변수로 입력
+- 리액트 개발자 도구에서 확인 가능
+
