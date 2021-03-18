@@ -95,7 +95,7 @@ import React, { useMemo } from "react";
 import { runExpensiveJob } from './util';
 
 function MyComponent({ v1, v2 }) {
-    const value = useMemo() => runExpensiveJob((v1, v2), [v1, v2]);
+    const value = useMemo(() => runExpensiveJob(v1, v2), [v1, v2]);
     return <p>{`value is ${vale}`}</p>;
 }
 ```
@@ -150,4 +150,72 @@ function  Profile() {
 ```
 - 이전 `onSave` 속성값으로 전달했던 것과 같은 함수를 `useCallback` 훅의 첫번째 매개변수로 입력
 - `useCallback` 훅의 두 번째 매개변수는 **의존성 배열** > 변경되지 않으면 이전 생성 함수가 재사용
+
+## 3.6.4 컴포넌트의 상태값을 리덕스처럼 관리하기: `useReducer`
+```js
+import React, { useReducer } from 'react';
+
+const INITIAL_STATE = { name: 'empty', age: 0 };
+function reducer(state, action) {
+    switch (action.type) {
+        case 'setName':
+            return { ...state, name: action.name };
+        case 'setAge':
+            return { ...state, age: action.age };
+        default:
+            return state;
+    }
+}
+
+function Profile() {
+    const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+    return (
+        <div>
+            <p>{`name is ${state.name}`}</p>
+            <p>{`age is ${state.age}`}</p>
+            <input 
+                type="text"
+                value={state.name}
+                onChange={e =>
+                    dispatch({ type: 'setName', name: e.currentTarget.value })
+                }
+            />
+            <input 
+                type="number"
+                value={state.age}
+                onChange={e => dispatch({ type: 'setAge', age: e.curruntTarget.value })}
+            />
+        </div>
+    );
+}
+```
+
+- 리덕스의 리듀서와 같은 방식으로 작성
+- `useReducer` 훅의 매개변수로 앞에서 작성한 리듀서와 초기 상태값을 입력
+- 상태값과 `dispatch` 함수를 차례대로 반환
+
+### 트리의 깊은 곳으로 이벤트 처리 함수 전달하기
+
+#### `useReducer` 훅과 `ContextAPI` 를 이용해서 이벤트 처리 함수 전달하기
+```js
+// ...
+export const ProfileDispatch = React.createContext(null);
+// ...
+function Profile() {
+    const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+    return (
+        <div>
+            <p>{`name is ${state.name}`}</p>
+            <p>{`age is ${state.age}`}</p>
+            <ProfileDispatch.Provider value={dispatch}>
+                <SomeComponent />
+            </ProfileDispatch.Provider>
+        </div>
+    )
+}
+```
+- `dispatch` 함수를 전달해 주는 콘텍스트 객체를 생성
+- `Provider`를 통해 `dispatch` 함수를 데이터로 전달
+- **SomeComponent** 하위의 모든 컴포넌트에서는 `dispatch`를 호출 가능
+- `useReducer` 훅의 `dispatch` 함수는 값이 변하지 않는 특징이 있어 불필요하게 자주 렌더링되지 않음
 
