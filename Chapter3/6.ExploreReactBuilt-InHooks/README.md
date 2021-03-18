@@ -83,3 +83,71 @@ function Profile() {
 - `age`의 이전 상태값을 이용
 - `age`가 변경되어 다시 렌더링할 때 `prevAge` 는 `age`의 이전 상태값을 나타냄
 - 렌더링이 끝나면 `prevAgeRef`는 `age`의 최신 상태값으로 변경
+
+## 3.6.3 메모이제이션 훅: `useMemo`, `useCallback`
+> 이전 값을 기억해서 성능을 최적화한다
+
+### `useMemo`
+> 계산량이 많은 함수의 반환값을 재활용하는 용도로 사용
+
+```js
+import React, { useMemo } from "react";
+import { runExpensiveJob } from './util';
+
+function MyComponent({ v1, v2 }) {
+    const value = useMemo() => runExpensiveJob((v1, v2), [v1, v2]);
+    return <p>{`value is ${vale}`}</p>;
+}
+```
+- 첫 번째 매개변수로 함수를 입력 > 함수의 반환 값을 **기억**
+- 두 번째 매개변수는 의존성 배열 > 변경되지 않으면 이전 반환 값을 **재사용**
+- 배열의 값 변경 시 > 입력된 함수를 실행시키고 그 반환값을 **기억**
+
+### `useCallback`
+> `lodash` 라이브러리의 메모이제이션과 비슷, 렌더링 성능을 위해 제공
+
+#### `useCallback` 훅이 필요한 예
+```js
+import React, { useState } from "react";
+import { saveToServer } from './util';
+import UserEdit from './UserEdit';
+
+function Profile() {
+    const [name, setName] = useState('');
+    const [age, setAge] = useSTate(0);
+    return (
+        <div>
+            <p>{`name is ${name}`}</p>
+            <p>{`age is ${age}`}</p>
+            <UserEdit 
+                onSave={() => saveToServer(name, age)}
+                setName={setName}
+                setAge={setAge}
+            />
+        </div>
+    );
+}
+```
+- **Profile 컴포넌트**가 렌더링될 때마다 **UserEdit 컴포넌트**의 `onSave` 속성값으로 새로운 함수가 입력
+- `useMemo` 훅을 사용해도 `onSave` 속성값이 항상 변경되어 **불필요한 렌더링**이 발생
+- `onSave` 속성값은 `name`이나 `age` 값이 변경되지 않으면 항상 같아야 함
+
+#### `useCallback`훅 사용하기
+```js
+// ...
+function  Profile() {
+    const [name, setName] = useState('');
+    const [age, setAge] = useState(0);
+    const onSave = useCallback(() => saveToServer(name, age), [name, age]);
+    return (
+        <div>
+            <p>{`name is ${name}`}</p>
+            <p>{`age is ${age}`}</p>
+            <UserEdit onSave={onSave} setName={setName} setAge={setAge} />
+        </div>
+    );
+}
+```
+- 이전 `onSave` 속성값으로 전달했던 것과 같은 함수를 `useCallback` 훅의 첫번째 매개변수로 입력
+- `useCallback` 훅의 두 번째 매개변수는 **의존성 배열** > 변경되지 않으면 이전 생성 함수가 재사용
+
