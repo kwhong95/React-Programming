@@ -146,3 +146,34 @@ function Form() {
 - `useCallback` 훅을 이용해서 `setInitialText` 함수를 변하지 않도록 설계
 - `useCallback` 훅의 메모이제이션 기능 덕분에 한 번 생성된 함수를 계속 재사용 가능
 - `ref` 속성값으로 함수를 사용하면 돔 요소의 생성과 제거 시점을 알 수 있음
+
+## 3.5.3 `ref` 속성값 사용 시 주의할 점
+> 컴포넌트가 생성된 이후라도 `ref` 객체의 `current` 속성이 없을 수 있음을 주의
+
+#### `ref` 객체의 `current` 속성이 없는 경우
+```js
+function Form() {
+    const inputRef = useRef();
+    const [showText, setShowText] = useState(true);
+    
+    return (
+            <div>
+              {showText && <input type="text" ref={inputRef} />}
+              <button onClick={() => setShowText(!showText)}>
+                텍스트 보이기/가리기
+              </button>
+              <button onClick={() => inputRef.current.focus()}>텍스트로 이동</button>
+            </div>
+    );
+}
+```
+- 위와 같이 **조건부 렌더링**을 하는 경우, 컴포넌트가 생성된 이후라 하더라도 `ref` 객체를 사용할 떄 주의해야 함
+- `input` 요소가 존재하지 않은 상태에서 `텍스트로 이동` 버튼을 누르면 `inputRef` 객체의 `current` 속성은 존재하지 않기 때문에 에러가 발생
+- 따라서, **조건부 렌더링**이 사용된 요소의 `ref` 객체는 `current` 속성을 검사하는 코드가 필요
+
+#### `current` 속성이 존재하는지 검사하기
+```js
+<button onClick={() => inputRef.current && inputRef.current.focus()}>
+  텍스트로 이동
+</button>
+```
