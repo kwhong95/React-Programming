@@ -166,3 +166,175 @@ function Profile(userId) {
 
 - `useCallback` 훅을 이용해서 `fetchAndSetUser` 함수가 필요할 때만 갱신
 - `userId`가 변경될 때만 호출
+
+## 4.2.2 의존성 배열을 없애는 방법
+> 가능하면 의존성 배열을 사용하지 않는 것이 좋다.
+
+### 부수 효과 함수 내에서 분기 처리하기
+```js
+function Profile(userId) {
+    const [user, setUser] = useState();
+    async function fetchAndSetUser(needDetail) {
+        const data = await fetchUser(userId, needDetail);
+        setUser(data);
+    }
+    useEffect(() => {
+        if (!user || user.id !== userId) {
+            fetchAndSetUser(false);
+        }
+    });
+    // ...
+} 
+```
+
+- `if` 문으로 `fetchAndSetUser` 호출 시점을 관리
+- 의존성 배열을 입력하지 않으면 사용된 모든 변수는 가장 최신화된 값을 참조
+
+---
+
+### `useState`의 상태값 변경 함수에 함수 입력하기
+> 이전 상태값을 기반으로 다음 상태값을 계산하기 위해 의존성 배열을 사용하는 경우
+```js
+function MyComponent() {
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        function onClick() {
+            setCount(count + 1);
+        }
+        window.addEventListener('click', onClick);
+        return () => window.removeEventListener('click', onClick);
+    }, [count]);
+    // ...
+}
+```
+
+### 상태값 변경 함수를 입력해서 의존성 배열을 제거하기
+```js
+function MyComponent() {
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        function onClick() {
+            setCount(prev => prev + 1);
+        }
+        window.addEventListener('click', onClick);
+        return () => window.removeEventListener('click', onClick);
+    });
+    // ...
+}
+```
+
+### `useReducer` 활용하기
+> 여러 상태값을 참조하며 값을 변경할 때 유리하다
+
+#### 여러 상태값을 참조하면서 값을 변경하는 코드
+```js
+function Timer({ initialTotalSeconds }) {
+    const [hour, setHour] = useState(Math.floor(initialTotalSeconds / 3000));
+    const [minute, setMinute] = useState(
+        Math.floor((initialTotalSeconds % 3600) / 60)
+    );
+    const [second, setSecond] = useState(initialTotalSeconds % 60);
+    useEffect(() => {
+        const id = setInterval(() => {
+            if (second) {
+                setSecond(second - 1);
+            } else if (minute) {
+                setMinute(minute - 1);
+                setSecond(59);
+            } else if (hour) {
+                setHour(hour -1);
+                setMinute(59);
+                setSecond(59);
+            }
+        }, 1000);
+        return () => clearInterval(id);
+    }, [hour, minute, second]);
+    // ...
+}
+```
+
+#### `useReducer` 훅을 사용해서 의존성 배열을 제거
+```js
+function Timer({ initialTotalSeconds }) {
+    const [state, dispatch] = useReducer(reducer, {
+        hour: Math.floor(initialTotalSeconds / 3600),
+        minute: Math.floor((initialTotalSeconds % 3600) / 60),
+        second: initialTotalSeconds % 60
+    });
+    const { hour, minute, second } = state;
+    useEffect(() => {
+        const id = setInterval(dispatch, 1000);
+        return () => clearInterval(id);
+    });
+    // ...
+}
+
+function reducer(state) {
+    const { hour, minute, second } = state;
+    if (second) {
+        return { ...state, second: second - 1 };
+    } else if (minute) {
+        return  { ...state, minute: minute - 1, second: 59 };
+    } else if (hour) {
+        return { ...state, hour: hour - 1, minute: 59, second: 59 };
+    } else {
+        return state;
+    }
+ }
+```
+
+- `useState`훅으로도 의존성 배열을 제거 가능하나, `useReducer`를 사용하면 다양한 액션과 상태값을 관리하기 용이하며, 상태값 변경 로직을 여러 곳에서 재사용하기에도 편리함
+
+### `useRef` 활용하기
+> 속성값이 렌더링 결과에 영향을 주지않을 때
+
+#### 자주 변경되는 속성값을 의존성 배열에 추가한 코드
+```js
+function MyComponent({ onClick }) {
+    useEffect(() => {
+        window.addEventListener('click', () => {
+            onClick();
+            // ...
+        });
+        // 연산량이 많은 코드
+    }, [onClick]);
+    // ...
+}
+```
+
+#### `useRef`훅으로 부수 효과 함수가 자주 호출되지 않도록 개선
+```js
+function MyCompoent({ onClick }) {
+    const onClickRef = useRef();
+    useEffect(() => {
+        onClickRef.current = onClick;
+    });
+    useEffect(() => {
+        window.addEventListener('click', () => {
+            onClickRef.current();
+            // ...
+        });
+        // ...
+    });
+    // ...
+}
+```
+
+- `useRef` 에는 렌더링 결과와 무관한 값만 저장할 것
+    + 변경돼도 컴포넌트가 다시 렌더링 되지 않음
+    
+### `useRef`값을 부수 효과 함수에서 변경하는 이유
+> 컴포넌트 함수에서 직접 변경 시 한 가지 문제가 있다.
+#### `useRef` 값을 컴포넌트 함수에서 직접 변경
+```js
+function MyComponent({ onClick }) {
+    const onClickRef = useRef();
+    onClickRef.current = onClick;
+} 
+```
+- 부수 효과 함수에서 값을 수정하는 것보다 빠른 시점에 수정
+- 부수 효과 함수에서 수정하는 이유는 나중에 도입될 리액트의 `concurrent` 모드 때문
+  + 컴포넌트 함수가 실행됐다고 하더라도 중간에 렌더링 취소가 가능
+  + 렌더링 취소 시 `useRef`에는 잘못된 값 저장 가능성
+  + 그래서, `useRef`는 컴포넌트 함수에서 직접 수정하면 안됨
+  + 단, `concurrent` 모드가 아니라면 문제 없음
