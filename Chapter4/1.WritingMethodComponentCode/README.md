@@ -225,3 +225,184 @@ MyComponent.propTypes = {
 };
 ```
 
+## 4.1.3 가독성을 높이는 조건부 렌더링 방법
+> 컴포넌트 함수 내부에서 특정 값에 따라 선택적으로 렌더링하는 것: **조건부 렌더링**
+
+#### 간단한 조건부 렌더링 예
+```js
+function GreetingA({ isLogin, name }) {
+    if (isLogin) {
+        return <p>{`${name}님 안녕하세요.`}</p>;
+    } else {
+        return <p>권한이 없습니댜</p>;
+    }
+}
+
+function GreetingB({ isLogin, name }) {
+  return <p>{isLogin ? `${name}님 안녕하세요` : '권한이 없습니다'}</p>;
+}
+```
+
+#### 조금 복잡한 조건부 렌더링 예
+```js
+function GreetingA({ isLogin, name }) {
+    if (isLogin) {
+        return (
+                <p className="greeting" onClick={showMenu}>
+                  {`${name}님 안녕하세요.`}
+                </p>
+        );
+    } else {
+        return (
+                <p className="noAuth" onClick={goToLoginPage}>
+                  권한이 없습니다.
+                </p>
+        );
+    }
+}
+
+function GreetingB({ isLogin, name }) {
+    return (
+            <p
+                className={isLogin ? 'greeting' : 'noAuth'}
+                onClick={isLogin ? showMenu : goToLoginPage}
+            >
+              {isLogin ? `${name}님 안녕하세요`: '권한이 없습니다'}
+              
+            </p>
+    )
+}
+```
+
+#### 삼항 연산자를 사용한 조건부 렌더링
+```js
+function Greeting({ isLogin, name, cash }) {
+    return (
+            <div>
+              저희 사이트에 방문해 주셔서 감사합니다.
+              {isLogin ? (
+                      <div>
+                        <p>{name}님 안녕하세요</p>
+                        <p>현재 보유하신 금액은 {cash}원 입니다</p>
+                      </div>
+              ) : null}
+            </div>
+    );
+}
+```
+
+### `&&`연산자를 이용한 조건부 렌더링
+#### `&&`, `||` 연산자 이해하기
+```js
+const v1 = 'ab' && 0 && 2; // v1 === 0
+const v2 = 'ab' && 2 && 3; // v2 === 3
+const v3 = 'ab' || 0; // v3 === 'ab'
+const v4 = '' || 0 || 3; // v4 === 3
+```
+
+- `&&`, `||` 연산자 모두 마지막으로 검사한 값을 반환
+- `&&` : 첫 거짓(false)값 또는 마지막 값을 반환
+    + 렌더링할 요소를 끝에 작성하고, 앞쪽에는 해당 조건을 작성
+- `||` : 첫 참(true)값 또는 마지막 값을 반환
+
+#### `&&` 연산자를 사용한 조건부 렌더링
+```js
+function Greeting({ isLogin, name, cash }) {
+    return (
+            <div>
+              저희 사이트에 방문해 주셔서 감사합니다
+              {isLogin && (
+                      <div>
+                        <p>{name}님 안녕하세요</p>
+                        <p>현재 보유하신 금액은 {cash}원 입니다</p>
+                      </div>
+              )}
+            </div>
+    );
+}
+```
+
+#### 복잡한 조건을 삼항 연산자로 구현한 예
+```js
+function Greeting({ isEvent, isLogin, name, cash }) {
+    return (
+            <div>
+              저희 사이트에 방문해주셔서 감사합니다
+              {isEvent ? (
+                      <div>
+                        <p>오늘의 이벤트를 놓치지 마세요</p>
+                        <button onClick={onClickEvent}>이벤트 참여하기</button>
+                      </div>
+              ): isLogin ? (
+                  cash <= 100000 ? (
+                          <div>
+                            <p>{name}님 안녕하세요</p>
+                            <p>현재 보유하신 금액은 {cash}원입니다</p>
+                          </div>
+                  ) : null
+              ): null}
+            </div>
+    );
+}
+```
+
+#### 복잡한 조건을 `&&` 연산자로 구현한 예
+```js
+function Greeting({ isEvent, isLogin, name, cash }) {
+    return (
+            <div>
+              저희 사이트에 방문해 주셔서 감사합니다
+              {isEvent && (
+                      <div>
+                        <p>오늘의 이벤트를 놓치지 마세요</p>
+                        <button onClick={onClickEvent}>이벤트 참여하기</button>
+                      </div>
+              )}
+              {!isEvent && 
+                isLogin &&
+                      cash <= 100000 && (
+                      <div>
+                        <p>{name}님 안녕하세요</p>
+                        <p>현재 보유하신 금액은 {cash}원입니다</p>
+                      </div>
+              )}
+            </div>
+    );
+}
+```
+
+### `&&` 연산자 사용시 주의할 점
+> 변수가 숫자 타입인 경우 0은 거짓이고, 문자열 타입인 경우 빈문자열이 거짓이다
+
+#### `&&` 연산자를 잘못 사용한 예
+```js
+<div>
+  {cash && <p>{cash}원 보유 중</p>}
+  {memo && <p>{200 - memo.length}자 입력 가능</p>}
+</div>
+```
+- 캐시가 0원일 때도 `보유중`을 출력해야 하나 출력되지 않음
+- 더 문제는 의도치 않게 숫자 0이 덩그러니 출력됨
+- 의도적으로 0도 거짓으로 처리하고 싶다면 `!!cash &&`를 입력
+
+#### `&&` 연산자를 잘 사용한 예
+```js
+<div>
+  {cash != null && <p>{cash}원 보유 중</p>}
+  {memo != null && <p>{200 - memo.length}자 입력 가능</p>}
+</div>
+```
+
+- `cash != null` 은 `cash`가 `undefined`도 아니고 `null`도 아니면 참이 됨
+
+#### 배열의 기본값이 빈 배열이 아닌 경우
+```js
+<div>{student && student.map(/* */)}</div>
+<div>{products.map(/* */)}</div>
+```
+- 해당 컴포넌트가 **마운트**와 **언마운트**를 반복할 수 있음을 인지
+  + 컴포넌트의 상태값도 사라지고 렌더링 성능에도 안좋은 영향을 줄 수 있음
+  + 자식 컴포넌트 입장에서는 로직이 간단해지는 장점
+- 각자의 취향과 프로젝트의 성격에 따라 **코딩 컨벤션**을 정한다
+- 리뷰어(reviewer)를 배려하는 마음으로 작성
+
