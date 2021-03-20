@@ -277,3 +277,155 @@ function addNewFruit() {
     setNewFruit('');
 }
 ```
+
+## 4.3.3 가상 돔에서의 성능 최적화
+### 요소의 타입 또는 속성을 변경하는 경우
+> 요소 타입 변경 시 모든 자식 요소도 같이 변경, 내용이 변경되지 않아도 실제 돔에서 삭제되고 다시 추가되므로 비효율적임
+#### 요소의 타입을 변경하는 코드
+```js
+function App() {
+    const [flag, setFlag] = useState(true);
+    useEffect(() => {
+        setTimeout(() => setFlag(prev => !prev), 1000);
+    });
+    if (flag) {
+        return (
+            <div>
+                <Counter />
+                <p>사과</p>
+                <p>바나나</p>
+            </div>
+        );
+    } else {
+        return (
+            <span>
+                <Counter />
+                <p>사과</p>
+                <p>바나나</p>
+            </span>
+        );
+    }
+}
+
+function Counter() {
+    const [count, setCount] = useState(0);
+    useEffect(() => {
+        setTimeout(() => setCount(prev => prev + 1), 1000);
+    });
+    return <p>count: {count}</p>;
+}
+```
+
+#### 요소의 속성값을 변경하는 경우
+```js
+function App() {
+    // ... 
+    return (
+        <div
+            className={flag ? 'yes' : 'no'}
+            style={{ color: 'black', backgroundColor: flag ? 'green' : 'red' }}
+        >
+            <Counter />
+            <p>사과</p>
+            <p>바나나</p>
+        </div>
+    );
+}
+```
+
+---
+
+### 요소를 추가하거나 삭제하는 경우
+> 일반적으로 새로운 요소를 추가하거나 삭제하면 해당 요소만 실제 돔에 추가 또는 삭제하고 기존 요소는 건드리지 않는다
+
+#### 새로운 요소를 추가하거나 삭제하는 경우
+```js
+function App() {
+    // ...
+  if (flag) {
+      return (
+              <div>
+                <p>사과</p>
+                <p>바나나</p>
+              </div>
+      );
+  } else {
+      return (
+              <div>
+                <p>사과</p>
+                <p>바나나</p>
+                <p>파인애플</p>
+              </div>
+      );
+  }
+}
+```
+
+#### 1초마다 중간에 요소를 추가하고 삭제
+```js
+function App() {
+    // ...
+  if (flag) {
+      return (
+              <div>
+                <p>사과</p>
+                <p>바나나</p>
+              </div>
+      );
+  } else {
+      return (
+              <div>
+                <p>사과</p>
+                <p>파인애플</p>
+                <p>바나나</p>
+              </div>
+      );
+  }
+}
+```
+- 리액트는 중간에 요소를 추가하면 그 뒤에 요소가 변경되지 않았다는 것을 알지 못함
+
+#### `key` 속성값을 입력하는 경우
+```js
+function App() {
+    // ...
+  if (flag) {
+      return (
+              <div>
+                <p key="apple">사과</p>
+                <p key="banana">바나나</p>
+              </div>
+      );
+  } else {
+      return (
+              <div>
+                <p key="apple">사과</p>
+                <p key="pineapple">파인애플</p>
+                <p key="banana">바나나</p>
+              </div>
+      );
+  }
+}
+```
+- `key` 속성값을 입력하면 같은 키를 가지는 요소끼리만 비교해서 변경점을 찾음
+- 리액트가 렌더링을 효율적으로 할수 있도록 제공하는 추가 정보
+
+#### `key` 속성값으로 배열의 순서 정보를 입력
+```js
+function App() {
+    // ...
+  const fruits = flag ? FRUITS_1 : FRUITS_2;
+  return (
+          <div>
+            {fruits.map((item, idx) => {
+              <p key={idx}>{item}</p>
+            })}
+          </div>
+  );
+}
+
+const FRUITS_1 = ['사과', '바나나'];
+const FRUITS_2 = ['사과', '파인애플', '바나나'];
+```
+
+- 위처럼 배열 중간에 원소를 추가하거나 삭제할 경우 또는 배열을 새롭게 정렬하는 경우 `key` 속성값으로 순서 정보를 입력하는 것이 바람직하지 않음
