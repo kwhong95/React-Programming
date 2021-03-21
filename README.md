@@ -6,3 +6,7 @@
 ### Chapter02 [ES 6+를 품은 JS, 매력적인 언어가 되다.](https://github.com/kwhong95/React-Programming/tree/master/Chapter2)
 ### Chapter03 [중요하지만 헷갈리는 리액트 개념 이해하기](https://github.com/kwhong95/React-Programming/tree/master/Chapter3)
 ### Chapter04 [리액트 실전 활용법](https://github.com/kwhong95/React-Programming/tree/master/Chapter4)
+### Chapter05 [레거시 프로젝트를 위한 클래스형 컴포넌트]() - SKIP!!
+### Chapter06 [리덕스로 상태 관리하기]() - SKIP!!
+### Chapter07 [바벨과 웹팩 자세히 들여다보기]() - 추후에 다룸!!
+### Chapter08 [서버사이드 렌더링 그리고 Next.js]()
