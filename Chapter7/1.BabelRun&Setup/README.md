@@ -424,3 +424,186 @@ const text = "element type is " + element.type;
 const add = (a, b) => a + b;
 ```
 
+## 7.1.4 바벨과 폴리필
+> JS 의 최신 기능을 모두 사용 + 오래된 브라우저를 지원 
+
+#### 폴리필이란?
+> 런타임에 기능을 주입, 런타임에 기능이 존재하는지 검사해 기능이 없는 경우에만 주입
+
+#### 폴리필 코드의 예
+```js
+if (!String.prototype.padStart) {
+    String.prototype.padStart = func; // func는 padStart 폴리필 함수
+}
+```
+
+### `core-js` 모듈의 모든 폴리필 사용하기
+> 바벨에서 폴리필을 위해 공식적으로 지원하는 패키지
+#### `code-js` 모듈의 사용 예
+```js
+import 'core-js'
+
+const p = Promise.resolve(10);
+const obj = {
+  a: 10,
+  b: 20,
+  c: 30,
+};
+const arr = Object.values(obj);
+const exist = arr.includes(20);
+```
+
+- `core-js` 모듈을 가져오면 해당 모듈의 모든 폴리필이 포함
+- 낮은 버전의 브라우저에서도 프로미스, `Object.values`, 배열의 `includes` 메서드를 사용 가능
+
+#### 웹팩에서 `core-js` 모듈을 사용한 예
+```js
+module.exports = {
+    entry: ['core-js', './src/index.js'],
+    // ...
+}
+```
+- `core-js` 모듈은 사용법이 간단하나, 필요하지 않은 폴로필까지 포함되므로 번들 파일의 크기가 커짐
+- 반대로 번들 파일의 크기에 민감하지 않은 프로젝트에서 사용하기 좋음
+
+### `core-js`모듈에서 필요한 폴리필만 가져오기
+#### `core-js`에서 필요한 폴리필을 직접 넣는 코드
+
+```js
+import 'core-js/features/promise';
+import 'core-js/features/object/values';
+import 'core-js/features/array/includes';
+
+const p = Promise.resolve(10);
+const obj = {
+  a: 10,
+  b: 20,
+  c: 30,
+};
+const arr = Object.values(obj);
+const exist = arr.includes(20);
+```
+
+- 번들 파일 크기 최소화 => 민감한 프로젝트에 적합
+
+### `@babel/preset-env` 프리셋 이용하기
+> 실행 환경에 대한 정보를 설정해 주면 자동으로 필요한 기능을 주입
+
+#### `@babel/preset-env` 설정 예
+```js
+const presets= [
+  [
+    '@babel/preset-env',
+    {
+      targets: '> 0.25%, not dead',  
+    },
+  ],
+];
+
+module.exports = { preset };
+```
+- `targets` 속성으로 지원하는 브라우저 정보를 입력
+  + 시장 점유율이 0.25% 이상이고 업데이트가 종료되지 않은 브라우저 입력
+- 브라우저 정보는 `browserslist`라는 패키지의 문법을 사용
+
+#### 필요한 패키지 설치
+```
+npm i @babel/core @babel/cli @babel/preset-env core-js
+```
+
+#### `babel.config.js`
+```js
+const presets = [
+    [
+        '@babel/preset-env',
+        {
+            targets: {
+                chrome: '40',
+            },
+            useBuiltIns: 'entry',
+            corejs: { version: 3, proposals: true },
+        },     
+    ],
+];
+
+module.exports = { presets };
+```
+
+- `@babel/preset-env` 프리셋 사용
+- 크롬 버전을 최소 40으로 설정
+- `useBuiltIns` 속성은 폴리필과 관련된 설정
+  + `enrty` 속성을 입력하면 지원하는 브라우저에서만 필요한 폴리필을 포함
+- 바벨에게 `core-js` 버전을 알려줌
+
+#### `src/code.js`
+```js
+import 'core-js';
+
+const p = Promise.resolve(10);
+const obj = {
+    a: 10,
+    b: 20,
+    c: 30,
+};
+const arr = Object.values(obj);
+const exist = arr.includes(20);
+```
+
+#### 바벨 실행하기
+```
+npx babel src/code.js
+```
+
+#### `useBuiltIns` 속성을 `entry`로 입력 후 컴파일한 결과
+```js
+'use strict';
+
+require("core-js/modules/es.symbol");
+require("core-js/modules/es.symbol.description");
+// ...
+require("core-js/modules/web.url-search-params.js");
+
+var p = Promise.resolve(10);
+var obj = {
+  a: 10,
+  b: 20,
+  c: 30
+};
+var arr = Object.values(obj);
+var exist = arr.includes(20);
+
+```
+- 모듈을 가져오는 코드가 출력(크롬 버전 40에 없는 기능을 위한 폴리필)
+- 실제 사용하는 폴리필 코드만 출력하는 방법
+  + `useBuiltIns` 속성값을 `usage`로 입력
+  
+#### `usage` 옵션으로 컴파일한 결과
+```js
+"use strict";
+
+require("core-js/modules/es.promise.js");
+require("core-js/modules/es.object.to-string.js");
+require("core-js/modules/es.object.values.js");
+require("core-js/modules/es.array.includes.js");
+require("core-js/modules/es.string.includes.js");
+require("core-js");
+
+var p = Promise.resolve(10);
+var obj = {
+  a: 10,
+  b: 20,
+  c: 30
+};
+var arr = Object.values(obj);
+var exist = arr.includes(20);
+```
+
+- 이 파일의 코드와 관련된 세 개의 폴리필이 추가
+- 문자열의 `includes` 폴리필이 불필요하게 추가
+  + 바벨이 코드에서 사용된 변수의 타입을 추론하지 못하기 때문
+  + 바벨 입장에서는 보수적으로 폴리필을 추가할 수밖에 없음
+- JS 는 동적 타입 언어이기 떄문에 바벨 입장에서 타입 추론은 까다로운 문제
+- TypeScript 와같은 정적 타입 언어를 사용하면 이런 문제를 비교적 쉽게 해결할 수 있음
+- `babel.config.js`파일에서 크롬 버전을 조금씩 올려 보면 코드에 포함되는 폴리필의 개수가 점점 줄어드는 것을 확인할 수 있음
+- 번들 파일의 크기를 최적화할 목적이라면 필요한 폴리필을 직접 추가하는 방식이 가장 좋다
+- `@babel-preset-env` 는 적당한 번들 파일 크기를 유지하면서 폴리필 추가 실수를 막고 싶을 때 가장 좋은 선택임
