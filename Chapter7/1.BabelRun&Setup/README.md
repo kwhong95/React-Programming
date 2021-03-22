@@ -364,3 +364,63 @@ const add = (a, b) => a + b;
 ```
 
 - 예상대로 출력 확인!
+
+## 7.1.3 전체 설정 파일과 지역 설정 파일
+
+#### 바벨 설정 파일 종류
+1) 모든 JS 파일에 적용되는 **전체(project-wide) 설정 파일**
+2) JS 파일의 경로에 따라 결정되는 **지역(file-relative) 설정 파일**
+
+#### 필요한 패키지 설치
+```
+npm i @babel/core @babel/cli @babel/plugin-transform-arrow-functions @babel/plugin-transform-template-literals @babel/preset-react
+```
+
+
+#### `babel.config.js`
+```json
+{
+  "plugins": [
+    "@babel/plugin-transform-arrow-functions",
+    "@babel/plugin-transform-template-literals"
+  ]
+}
+```
+
+#### `src/sevice1/code.js` 파일을 위한 설정 다음과 같이 결정
+- `package.json`, `babelrc`, `,babelrc.js` 파일을 만날 때까지 부모 폴더로 이동한다. `src/service1/.babelrc` 파일을 만났고, 그 파일이 **지역 설정 파일** 이다.
+- 프로젝트 루트의 `babel.config.js` 파일이 **전체 설정파일**이다.
+- 전체 설정 파일과 지역 설정 파일을 병합한다.
+
+#### 바벨 실행하기
+```
+npx babel src
+```
+
+#### 두 설정 파일이 병합되어 컴파일된 결과
+```js
+const element = /*#__PURE__*/React.createElement("div", null, "babel test");
+const text = "element type is ".concat(element.type);
+
+const add = function (a, b) {
+  return a + b;
+};
+
+```
+- 전체 설정 파일의 리액트 프리셋 적용
+- 지역 설정 파일의 템플릿 리터럴(`loose` 옵션 미적용) & 화살표 함수 플러그인 적용
+
+#### 디렉토리 구조
+<img width="242" alt="스크린샷 2021-03-22 오후 8 49 57" src="https://user-images.githubusercontent.com/70752848/111985617-2b000c00-8b50-11eb-8643-e1002cd9697a.png">
+
+- `package.json` 파일을 만났고 `package.json` 파일에 `babel` 속성이 없으므로 지역 설정 파일은 없다.
+- 프로젝트 루트의 `babel.config.js` 파일이 전체 설정 파일이다.
+
+#### 전체 설정 파일만 적용된 콘솔 출력 결과
+```js
+const element = /*#__PURE__*/React.createElement("div", null, "babel test");
+const text = "element type is " + element.type;
+
+const add = (a, b) => a + b;
+```
+
