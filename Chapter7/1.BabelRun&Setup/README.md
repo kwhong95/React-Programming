@@ -213,3 +213,154 @@ console.log('code2:\n', code2);
 - AST 로부터 첫 번째 설정의 플러그인이 반영된 코드를 생성
 - 마찬가지로 두 번째 설정이 적용된 코드 생성 
   + 설정의 개수가 많아질수록 이 방식의 효율이 높아짐
+
+## 7.1.2 확장성과 유연성을 고려한 바벨 설정 방법
+- `extends` 속성 : 다른 설정 파일을 가져와 확장
+- `env`, `overrides` 속성 : 환경별 또는 파일별로 다른 설정을 적용
+
+#### 설치 패키지
+```
+npm i @babel/core @babel/cli @babel/plugin-transform-arrow-functions @babel/plugin-transform-template-literals @babel/preset-react babel-preset-minify
+```
+
+### `extends` 속성으로 다른 설정 파일 가져오기
+#### `common/.babelrc`
+```json
+{
+  "presets": ["@babel/preset-react"],
+  "plugins": [
+    [
+      "@babel/plugin-transform-template-literals",
+      {
+        "loose": true
+      }
+    ]
+  ]
+}
+```
+
+- `loose` 옵션 : 문자열 연결 시 `concat` 메서드 사용 대신 `+` 연산자 사용
+
+#### `src/example-extends/.babelrc`
+```json
+{
+  "extends": "../../common/.babelrc",
+  "plugins": [
+    "@babel/plugin-transform-arrow-functions",
+    "@babel/plugins-transform-template-literals"
+  ]
+}
+
+```
+
+- `extends` 속성을 이용해서 다른 파일에 있는 설정을 불러옴
+- 가져온 설정에 플러그인을 추가
+- 템플릿 리터럴 플러그인은 가져온 설정이 이미 존재
+  + 플러그인 옵션은 현재 파일의 옵션으로 결정(`loose` 옵션 삭제)
+  
+#### `code.js`파일을 컴파일한 결과
+```js
+const element = /*#__PURE__*/React.createElement("div", null, "babel test"); // 1
+const text = "element type is ".concat(element.type); // 2
+
+const add = function (a, b) { // 3
+  return a + b;
+};
+
+```
+
+1) 리액트 프리셋 적용
+2) 템플릿 리터럴 플러그인 적용 (`loose` 옵션이 적용되지 않아 `concat` 메서드 사용)
+3) 화살표 함수 플러그인 적용
+
+### `env` 속성으로 환경별로 설정하기
+#### `env` 속성 사용 예
+```json
+{
+  "presets": ["@babel/preset-react"],
+  "plugins": [
+    "@babel/plugin-transform-template-literals",
+    "@babel/plugin-transform-arrow-functions"
+  ],
+  "env": {
+    "production": {
+      "presets": ["minify"]
+    }
+  }
+}
+```
+
+- 전과 같이 프리셋과 플러그인 설정
+- `env` 속성 : 환경별로 다른 설정 가능
+- 프로덕션 환경에서는 압축 프리셋을 사용하도록 설정
+
+#### 바벨에서 현재 환경 결정
+```
+process.env.BABEL_ENV || process.env.NODE_ENV || "development"
+```
+
+#### 프로덕션 환경으로 바벨 실행
+```
+NODE_ENV=production npx babel ./src/example-env
+```
+
+#### `env`속성이 적용되어 컴파일된 결과
+```js
+const element=/*#__PURE__*/React.createElement("div",null,"babel test"),text="element type is ".concat(element.type),add=function(c,a){return c+a};
+```
+
+#### 개발 환경으로 바벨 실행
+> default => `development` 사용
+ ```
+npx babel ./src/example-env
+```
+
+#### 개발 환경으로 컴파일된 결과
+```js
+const element = /*#__PURE__*/React.createElement("div", null, "babel test");
+const text = "element type is ".concat(element.type);
+
+const add = function (a, b) {
+  return a + b;
+};
+
+```
+
+### `overrides` 속성으로 파일별로 설정하기
+```json
+{
+  "presets": ["@babel/preset-react"],
+  "plugins": ["@babel/plugin-transform-template-literals"],
+  "overrides": [
+    {
+      "include": "./service1",
+      "exclude": "./service1/code2.js",
+      "plugins": ["@babel/plugin-transform-arrow-functions"]
+    }
+  ]
+}
+```
+
+- 리액트 프리셋과 템플릿 리터럴 플러그인 설정
+- `overrides` 속성 : 파일별로 다른 설정 가능
+- `service1` 폴더 밑 파일에 화살표 함수 플러그인 설정 적용
+- `service1/code2.js` 파일에는 화살표 함수 플러그인 미적용
+
+#### `overrides` 속성으로 컴파일된 결과
+```js
+// code1.js
+const element = /*#__PURE__*/React.createElement("div", null, "babel test");
+const text = "element type is ".concat(element.type);
+
+const add = function (a, b) {
+  return a + b;
+};
+
+// code2.js
+const element = /*#__PURE__*/React.createElement("div", null, "babel test");
+const text = "element type is ".concat(element.type);
+
+const add = (a, b) => a + b;
+```
+
+- 예상대로 출력 확인!

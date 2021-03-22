@@ -8,5 +8,5 @@
 ### Chapter04 [리액트 실전 활용법](https://github.com/kwhong95/React-Programming/tree/master/Chapter4)
 ### Chapter05 [레거시 프로젝트를 위한 클래스형 컴포넌트]() - SKIP!!
 ### Chapter06 [리덕스로 상태 관리하기]() - SKIP!!
-### Chapter07 [바벨과 웹팩 자세히 들여다보기]() - 추후에 다룸!!
-### Chapter08 [서버사이드 렌더링 그리고 Next.js]()
+### Chapter07 [바벨과 웹팩 자세히 들여다보기](https://github.com/kwhong95/React-Programming/tree/master/Chapter7) 
+### Chapter08 [서버사이드 렌더링 그리고 Next.js](https://github.com/kwhong95/React-Programming/tree/master/Chapter8)
