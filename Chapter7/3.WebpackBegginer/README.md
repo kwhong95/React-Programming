@@ -49,3 +49,56 @@ document.body.appendChild(element);
 - 로다시의 필요가 없어져 모든 JS 코드에서 제거할 때도 문제가 생길수 있음
 - `script` 태그를 지우는 것을 깜빡하면 불필요한 리소스의 다운로드가 발생하고 렌더링 속도를 저하시킴
 
+## 7.3.1 웹팩 실행하기
+#### 필요한 패키지 설치
+```
+ npm i webpack webpack-cli
+```
+
+#### `util.js` 파일
+```js
+export function sayHello(name) {
+    console.log('hello', name);
+}
+```
+
+#### `util.js` 모듈을 사용하는 `index.js` 파일
+```js
+import { sayHello } from './util';
+
+function myFunc() {
+    sayHello('mike');
+    console.log('myFunc');
+}
+
+myFunc();
+```
+
+#### 웹팩 실행하기
+```
+npx webpack
+```
+
+- `dist` 폴더가 생성되고 그 아래 `main.js` 번들 파일 생성(`index.js` + `util.js`)
+
+---
+
+### 설정 파일 이용하기
+#### `webpack.config.js` 파일
+```js
+const path = require('path');
+
+module.exports = {
+    entry: './src/index.js', // 1
+    output: { // 2
+        filename: 'main.js',
+        path: path.resolve(__dirname, 'dist'),
+    },
+    mode: 'production', // 3
+    optimization: { minimizer: [] }, // 4
+};
+```
+1) `index.js` 모듈을 입력 파일로 사용
+2) `dist` 폴더 밑에 `main.js` 번들 파일 생성
+3) 프로덕션 모드로 설정하면 JS 코드 압축을 포함한 여러가지 최적화 기능이 기본으로 설정
+4) 번들 파일의 내용을 쉽게 확인하기 위해 압축하지 않도록 설정
