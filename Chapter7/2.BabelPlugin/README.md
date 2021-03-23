@@ -66,4 +66,39 @@
 - `left`, `right` 속성으로 연산에 사용되는 변수나 값이 들어감
 
 > `astexplorer` : 여러 AST 타입의 대한 정보를 얻을 수 있음
-> 
+
+## 7.2.2 바벨 플러그인의 기본 구조
+> 바벨 플러그인은 하나의 JS 파일로 만들 수 있다.
+```js
+module.exports = function ({ types: t }) { // 1
+    const node = t.BinaryExpression('+', t,Identifier('a'), t.Identifier('b')); // 2
+    console.log('isBinaryExpression', t.isBinaryExpression(node)); // 3
+    return {}; // 4
+}
+```
+1) `types` 매개변수를 가진 함수를 내보냄
+2) `types` 매개변수를 이용해 AST 노드를 생성할 수 있고, 두 변수의 덧셈을 AST 노드로 만듬
+3) `types` 매개변수는 AST 노드 타입을 검사하는 용도로 사용
+4) 빈 객체를 반환하면 아무 일도 하지 않음
+
+#### 바벨 플러그인 함수가 반환하는 값의 형태
+```js
+module.exports = function({ types: t }) {
+    return {
+        visitor: { // 1
+            Identifier(path) { // 2
+                console.log('Identifier name: ', path.node.name);
+            },
+            BinaryExpression(path) { // 3
+                console.log('BinaryExpression operator: ', path.node.operator);
+            }
+        }
+    }
+}
+```
+1) `visitor` 객체 내부에서 노드의 타입 이름으로 된 함수를 정의할 수 있음
+- 해당하는 타입의 노드가 생성되면 같은 이름의 함수가 호출
+2) `Identifier` 타입의 노드가 생성되면 호출되는 함수
+- `const v1 = a + b;` 코드 입력시 이 함수는 세 번 호출
+3) `BinaryExpression` 타입의 노드가 생성되면 호출되는 함수
+- `const = a + b;` 코드 입력 시 이 함수는 한 번 호출 
