@@ -102,3 +102,203 @@ module.exports = {
 2) `dist` 폴더 밑에 `main.js` 번들 파일 생성
 3) 프로덕션 모드로 설정하면 JS 코드 압축을 포함한 여러가지 최적화 기능이 기본으로 설정
 4) 번들 파일의 내용을 쉽게 확인하기 위해 압축하지 않도록 설정
+
+## 7.3.2 로더 사용하기
+> 로더(loader)는 모듈을 입력으로 받아서 원하는 형태로 변환한 후 새로운 모듈을 출력해주는 함수
+
+### JS 파일 처리하기
+
+### 필요한 패키지 설치하기
+```
+npm i babel-loader @babel/core @babel/preset-react react react-dom
+```
+
+#### JSX 문법을 사용한 JS 파일
+```js
+import React from 'react';
+import ReactDom from 'react-dom';
+
+function App() {
+    return (
+        <div className="container">
+            <h3 className="title">webpack example</h3>
+        </div>
+    );
+}
+
+ReactDom.render(<App />, document.getElementById('root'));
+```
+
+#### `@babel/preset-react`을 사용하도록 설정하기
+```js
+const presets = ['@babel/preset-react'];
+module.exports = { presets };
+```
+
+#### `babel-laoder` 설정하기
+```js
+const path = require('path');
+
+module.exports = {
+    entry: './src/index.js',
+    output: {
+        filename: 'main.js',
+        path: path.resolve(__dirname, 'dist'),
+    },
+    module: { 
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: 'babel-loader', // !!
+            },
+        ],
+    },
+    mode: 'production',
+};
+```
+- js 확장자를 갖는 모듈은 `babel-loader`가 처리하도록 설정
+
+#### 정상 작동 확인(`dist/index.html`)
+```js
+<html>
+    <body>
+        <div id="root"></div>
+        <script src="main.js"></script>
+    </body>
+</html>
+```
+
+- 만약 `babel-loader`를 설정하지 않고 웹팩을 실행하면 웹팩이 JSX 문법을 이해하지 못하기 때문에 에러 발생
+
+### CSS 파일 처리하기
+#### `App.css`
+```css
+.container {
+    border: 1px solid blue;
+}
+
+.title {
+    color: red;
+}
+```
+
+#### `App.css` 파일을 사용하는 코드
+```js
+// ...
+import Style from './App.css';
+
+console.log({ Style });
+// ...
+```
+
+#### `css-loader` 설정하기
+```js
+// ...
+module: {
+    rules: [
+        // ...
+        {
+            test: /\.css$/,
+            use: 'css-loader',
+        },
+        // ...
+    ]
+}
+```
+
+#### 실제 스타일을 적용하기 위한 패키지 설치
+```shell
+npm install style-loader
+```
+
+#### `style-loader`를 사용하도록 설정하기
+```js
+{
+        test: /\.css$/, 
+        use: ['style-loader', 'css-loader'], // 1
+}
+```
+
+1) 로더를 배열로 입력하면 오른쪽 로더부터 실행 
+- `style-loader` 
+    + `css-loader` 가 생성한 CSS 데이터를 `style` 태그로 만들어서 `HTML head`에 삽입
+    + 번들 파일이 브라우저에서 실행될 때 `style` 태그를 삽입(실행 시 에러 발생시 태그가 삽입되지 않을 수 있음)
+- `css-module`
+    + 스타일 코드를 지역화할 수 있음
+    + `css-loader`가 제공해 주는 기능
+    + `@import, url()` 등 CSS 코드 처리를 도와줌
+    
+### 기타 파일 처리하기
+
+#### `data.json` 파일
+```json
+{
+  "name": "mike",
+  "age": 23
+}
+```
+
+#### 다양한 종류의 모듈을 사용하는 코드
+```js
+import ReactDom from 'react-dom';
+import './App.css';
+import Icon from './icon.png';
+import Json from './data.json';
+import Text from './data.txt';
+
+function App() {
+    return (
+        <div className="container">
+            <h3 className="title">webpack example</h3>
+            <div>{`name: ${Json.name}, age: ${Json.age}`}</div>
+            <div>{`text: ${Text}`}</div>
+            <img src={Icon} />
+        </div>
+    );
+}
+
+ReactDom.render(<App />, document.getElementById('root'));
+```
+- JSON 모듈은 웹팩에서 기본적으로 처리(별도 모듈 필요 X)
+- TXT, PNG 모듈을 처리하기 위한 패키지
+```shell
+npm i file-loader raw-loader
+```
+
+#### `file-loader` 와 `raw-loader` 설정하기
+```js
+{
+            test: /\.(png|jpg|gif)$/, 
+            use: 'file-loader',
+},
+{
+            test: /\.txt$/, 
+            use: 'raw-loader',
+},
+```
+
+### 이미지 파일의 요청 횟수 줄이기
+
+#### 필요한 패키지 설치
+```shell
+npm i url-loader
+```
+
+#### `url-loader` 설정하기
+```js
+// ...
+module: {
+    rules: [
+        // ...
+      {
+          test: /\.(png|jpg|gif)$/,
+          use: [
+            {
+                loader: 'url-loader',
+                options: {
+                    limit: 8192, // *
+                // ... (모든 괄호 닫기)
+```
+- `url-loader` 는 파일 크기가 이 값보다 작은 경우에는 번들 파일의 내용을 포함시킴
+- 만약 파일 크기가 이 값보다 큰 경우에는 다른 로더가 처리할 수 있도록 `fallback` 옵션 제공(default: file-loader)
