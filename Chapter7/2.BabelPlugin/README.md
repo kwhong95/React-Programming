@@ -102,3 +102,106 @@ module.exports = function({ types: t }) {
 - `const v1 = a + b;` 코드 입력시 이 함수는 세 번 호출
 3) `BinaryExpression` 타입의 노드가 생성되면 호출되는 함수
 - `const = a + b;` 코드 입력 시 이 함수는 한 번 호출 
+
+## 7.2.3 바벨 플러그인 제작하기: 모든 콘솔 로그 제거
+#### 콘솔 로그를 포함하는 `code.js` 파일
+```js
+console.log('aaa');
+const v1 = 123;
+console.log('bbb');
+function onClick(e) {
+    const v = e.target.value;
+}
+function add(a, b) {
+    return a + b;
+}
+```
+> 플러그인 제작을 위해 콘솔 로그의 AST 구조를 이해해야 함
+#### 콘솔 로그의 AST
+```json
+{
+  "types": "Program",
+  "start": 0,
+  "end": 20,
+  "body": [
+    {
+      "type": "ExpressionStatement",
+      "start": 0,
+      "end": 20,
+      "expression": {
+        "type": "CallExpression",
+        "start": 0,
+        "end": 19,
+        "callee": {
+          "type": "MemberExpression",
+          "start": 0,
+          "end": 11,
+          "object": {
+            "type": "Identifier",
+            "start": 0,
+            "end": 7,
+            "name": "console"
+          },
+          "property": {
+            "type": "Identifier",
+            "start": 8,
+            "end": 11,
+            "name": "log"
+          }
+        }
+      }
+    }
+  ]
+}
+```
+
+- 콘솔 로그 코드는 `ExpressionStatement` 노드로 시작
+- 함수 또는 메서드를 호출하는 코드는 `CallExpression` 노드로 만들어짐
+- 메서드 호출은 `CallExpression` 노드 내부에서 `MemberExpression` 노드(내부에 객체와 메서드의 이름 정보)로 만들어짐
+
+#### 콘솔 로그를 제거하는 플러그인 코드
+```js
+module.exports = function({ types: t }) {
+    return {
+        visitor: {
+            ExpressionStatement(path) { // 1
+                if (t.isCallExpression(path.node.expression)) { // 2
+                    if (t.isMemberExpression(path.node.expression.callee)) { // 3
+                        const memberExp = path.node.expression.callee;
+                        if (
+                            memberExp.object.name === 'console' && // 4
+                            memberExp.property.name === 'log'
+                        ) {
+                            path.remove(); // 5
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+1) `ExpressionStatement` 노드가 생성되면 호출되도록 메서드를 등록
+2) `ExpressionStatement` 노드의 `expression` 속성이 `CallExpression` 노드인지 검사
+3) `callee` 속성이 `MemberExpression` 노드인지 검사
+4) `console` 객체의 `log` 메서드가 호출된 것인지 검사
+5) 모든 조건을 만족하면 AST 에서 `ExpressionStatement` 노드를 제거
+
+#### 제작할 플러그인을 사용하도록 설정하기
+```js
+const plugins = ['./plugins/remove-log.js'];
+module.exports = { plugins };
+```
+
+#### 콘솔 로그가 제거된 결과
+```js
+const v1 = 123;
+
+function onClick(e) {
+  const v = e.target.value;
+}
+
+function add(a, b) {
+  return a + b;
+}
+```
