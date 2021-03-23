@@ -205,3 +205,85 @@ function add(a, b) {
   return a + b;
 }
 ```
+
+## 7.2.4 바벨 플러그인 제작하기: 함수 내부에 콘솔 로그 추가
+ > 이름이 `on` 으로 시작하는 모든 함수에 콘솔 로그를 추가해 주는 플러그인 제작
+#### 함수 `function f1(p1) { let v1; }` AST
+```json
+{
+  "type": "Program",
+  "start": 0,
+  "end": 25,
+  "body": [
+    {
+      "type": "FunctionDeclaration", // 1
+      "start": 0,
+      "end": 25,
+      "id": {
+        "type": "Identifier",
+        "start": 9,
+        "end": 11,
+        "name": "f1" // 2
+      },
+      "body": {
+        "type": "BlockStatement",
+        "start": 16,
+        "end": 25,
+        "body": [ ... ], // 3
+        // ...
+      }
+    }
+  ]
+}
+```
+1) 함수를 정의하는 코드는 `FunctionDeclaration` 노드로 생성
+2) 함수 이름은 `id` 속성에 있음 - 이 값이 `on`으로 시작하는지 검사
+3) `BlockStatement` 노드의 `body` 속성에는 함수의 모든 내부 코드에 대한 노드가 배열로 담겨 있음
+
+
+#### 콘솔 로그를 추가하는 플러그인
+```js
+module.exports = function({ type: t }) {
+    return {
+        visitor: {
+            FunctionDeclaration(path) { // 1
+                if (path.node.id.name.substr(0, 2) === 'on') { // 2
+                    path
+                        .get('body')
+                        .unshiftContainer( // 3
+                            'body', // 4 (아래 모든 코드)
+                            t.expressionStatement(
+                                t.callExpression(
+                                    t.memberExpression(
+                                        t.identifier('console'),
+                                        t.identifier('log'),
+                                    ),
+                                    [t.stringLiteral(`call ${path.node.id.name}`)],
+                                ),
+                            ),
+                            // ... (모든 괄호 닫기)
+```
+
+1) `FunctionDeclaration` 노드가 생성되면 호출되는 함수를 정의
+2) 함수 이름이 `on` 으로 시작하는지 검사
+3) `body` 배열의 앞쪽에 노드를 추가하기 위해 `unshiftContainer` 메서드 호출 
+4) 콘솔 로그 노드를 생성
+- 이 노드는 `console.log('call ${함수이름}')` 형태의 코드를 담고 있음
+
+#### 콘솔 로그가 추가된 결과
+```js
+console.log('aaa');
+const v1 = 123;
+console.log('bbb');
+
+function onClick(e) {
+  console.log("call onClick"); // *
+  const v = e.target.value;
+}
+
+function add(a, b) {
+  return a + b;
+}
+```
+
+* `on` 으로 시작하는 함수의 최상단에 콘솔 로그를 출력하는 코드가 생성
