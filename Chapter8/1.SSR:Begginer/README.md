@@ -6,12 +6,12 @@
 - 서버용 번들 파일을 만드는 방법을 알아본다.
 
 ### 바벨 실행을 위한 패키지
-```
-npm install @babel/core @babel/preset-env @babel/presetp-react
+```shell
+npm install @babel/core @babel/preset-env @babel/preset-react
 ```
 
 ### 웹팩 실행을 위한 패키지
-```
+```shell
 npm install webpack webpack-cli babel-loader clean-webpack-plugin html-webpack-plugin
 ```
 
@@ -19,3 +19,7 @@ npm install webpack webpack-cli babel-loader clean-webpack-plugin html-webpack-p
 > SSR 을 구현하기 위한 사전 작업으로 클라이언트에서만 렌더링하는 웹사이트 제작  
 > 자세한 코드는 `test-ssr` 폴더 참조
 
+### 클라이언트 렌더링 확인하기
+```shell
+npx webpack
+```
