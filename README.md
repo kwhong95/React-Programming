@@ -10,3 +10,4 @@
 ### Chapter06 [리덕스로 상태 관리하기]() - SKIP!!
 ### Chapter07 [바벨과 웹팩 자세히 들여다보기](https://github.com/kwhong95/React-Programming/tree/master/Chapter7) 
 ### Chapter08 [서버사이드 렌더링 그리고 Next.js](https://github.com/kwhong95/React-Programming/tree/master/Chapter8)
+### Chapter09 [정적 타입 그리고 타입스크립트]()
