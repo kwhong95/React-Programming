@@ -271,3 +271,203 @@ const enum Fruit {
 console.log(getEnumLength(Fruit)); // Type Error
 ```
 
+## 9.2.3 함수 타입
+> 함수의 타입을 정의하기 위해서는 매개변수 타입과 반환 타입이 필요
+
+#### 함수의 타입 정의하기
+```ts
+function getInfoText(name: string, age: number): string {
+    const nameText = name.substr(0, 10);
+    const ageText = age >= 35 ? 'senior' : 'junior';
+    return `name ${nameText}, age: ${ageText}`;
+}
+const v1: string = getInfoText('mike', 23);
+const v2: string = getInfoText('mike', '23'); // Type Error
+const v3: number = getInfoText('mike', 23); // Type Error
+```
+
+1) 매개변수 타입과 반환 타입을 정의
+2) 매개변수 `name`은 문자열 타입기 떄문에 `substr` 메서드를 사용할 수 있음
+- 문자열 타입이 아니였다면 타입 에러가 발생
+3) 매개변수 `age`는 숫자이기 때문에 다른 숫자와 크기 비교를 할 수 있음
+4) 매개변수 `age`에 문자열을 입력하면 타입 에러 발생
+5) 숫자 타입인 `v3` 변수에 이 함수의 반환값을 넣으면 타입 에러 발생
+
+- JS 에서 함수는 일급(first class)이므로 함수를 변수에 저장할 수 있음
+
+#### 변수를 함수 타입으로 정의하기
+```ts
+const getinfoText: (name: string, age: number) => string = function (name, age) {
+    // ...
+}
+```
+
+- 함수를 구현하는 코드에서는 매개변수 타입과 반환 타입을 작성하지 않아도 됨
+- 타입스크립트는 오른쪽 코드에서 `name`과 `age`가 각각 문자열과 숫자임을 인식함
+
+### 선택 매개변수
+> 매개변수의 이름 오른쪽에 물음표 기호를 입력하면 선택 매개변수가 됨
+
+```ts
+function getInfoText(name: string, age: number, language?: string): string {
+    const nameText = name.substr(0, 10);
+    const ageText = age >= 35 ? 'senior' : 'junior';
+    const languageText = language ? language.substr(0, 10) : '';
+    return `name: ${nameText}, age: ${ageText}. language: ${languageText}`;
+}
+getInfoText('mike', 23, 'ko');
+getInfoText('mike', 23);
+getInfoText('mike', 23, 123); // Type Error
+```
+
+#### 선택 매개변수 오른쪽에 필수 매개변수를 정의한 코드
+> 선택 매개변수 오른쪽에 필수 매개변수가 오면 컴파일 에러 발생
+```ts
+function getInfoText(name: string, language?: string, age: number): string { // Complier Error
+    // ...
+}
+```
+
+#### `undefined`를 이용해서 중간에 선택 매개변수 정의하기
+```ts
+function getInfoText(
+    name: string,
+    language: string | undefined,
+    age: number,
+    
+): string {
+    // ...
+}
+getInfoText('mike', undefined, 23);
+```
+
+### 매개변수의 기본값 정의하기
+```ts
+function getInfoText(
+    name: string,
+    age: number = 15,
+    language = 'Korean',
+): string {
+    // ...  
+}
+console.log(getInfoText('mike'));
+console.log(getInfoText('mike', 23));
+console.log(getInfoText('jone', 36, 'english'));
+
+const f1: (
+    name: string,
+    age?: number,
+    language?: string.
+) => string = getInfoText;
+```
+
+- 기본값이 있는 매개변수는 선택 매개변수
+
+### 나머지 매개변수
+```ts
+function getInfoText(name: string, ...rest: string[]): string {
+    // ...
+}
+```
+
+### `this` 타입
+#### `this` 타입을 정의하지 않은 코드
+```ts
+function getParam(index: number): string {
+    const params = this.splt(',');
+    if (index < 0 || params.length <= index) {
+        return '';
+    }
+    return this.split(',')[index];
+}
+```
+
+- `split` 을 `splt`로 오타를 낸 상황에 에러가 발생하지 않음
+- `this` 타입이 `any` 가 되었기 때문
+
+#### `this` 타입을 정의한 코드
+```ts
+function getParam(this: string, index: number): string {
+    const params = this.splt(',') // Type Error
+    // ...
+}
+```
+
+### 원시 타입에 메서드 추가하기
+#### 문자열 타입에 메서드 추가하기
+```ts
+interface String {
+    getParam(this: string, index: number): string;
+}
+String.prototype.getParam = getParam;
+console.log('asdf, 1234, ok'.getParam(1));
+```
+
+### 함수 오버로드: 여러 개의 타입 정의하기
+> 하나의 함수에 여러 개의 타입을 정의할 수 있음
+
+#### `add` 함수의 예
+- 두 매개변수가 모두 문자열이면 문자열을 반환
+- 두 매개변수가 모두 숫자이면 숫자를 반환
+- 두 매개변수가 서로 다른 타입으로 입력하면 안됨
+
+#### 함수 오버로드를 사용하지 않은 코드
+```ts
+function add(x: number | string, y: number | string): number | string {
+    if(typeof x === 'number' && y === 'number') {
+        return x + y;
+    } else {
+        const result = Number(x) + Number(y);
+        return result.toString();
+    }
+}
+const v1: number = add(1, 2); // Type Error
+console.log(add(1, '2'));
+```
+
+- 함수의 타입을 구체적으로 정의하지 못하여 발생한 *타입 에러*
+
+#### 함수 오버로드를 사용한 코드
+```ts
+function add(x: number, y: number): number;
+function add(x: string, y: string): string;
+function add(x: number | string, y: number | string): number | string {
+    // ...
+}
+const v1: number = add(1, 2);
+console.log(add(1, '2'))
+```
+
+- 매개변수와 반환 타입의 모든 가능한 조합을 정의
+- 실제 구현하는 쪽에서 정의한 타입은 함수 오버로드의 타입 목록에서 제외
+- 두 매개변수의 타입이 숫자이면 반환 타입도 숫자이므로 타입 에러가 발생하지 않음
+
+### 명명된 매개변수
+```ts
+function getInfoText({
+  name,
+  age = 15,
+  language,      
+}: {
+    name: string;
+    age?: number;
+    language?: string;
+}): string {
+    const nameText = name.substr(0, 10);
+    const ageText = age >= 35 ? 'senior' : 'junior';
+    return `name: ${nameText}, age: ${ageText}, language: ${language}`;
+}
+```
+
+#### 인터페이스로 명명된 매개변수의 타입 정의하기
+```ts
+interface Param {
+    name: string;
+    age?: number;
+    language?: string
+}
+function getInfoText({ name, age = 15, language }: Param): string {
+    // ...
+}
+```
+
