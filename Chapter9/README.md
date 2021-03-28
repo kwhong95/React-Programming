@@ -7,5 +7,9 @@
 ### 9.3 [인터페이스](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/3.Interface)
 ### 9.4 [타입 호환성](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/4.TypeCompatibility)
 ### 9.5 [타입스크립트 고급 기능](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/5.TypeScriptHighSkills)
+<<<<<<< HEAD
 ### 9.6 [생산성을 높이는 타입스크립트의 기능](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/6.FunctionOfTSToIncreaseProductivity)
 ### 9.7 [타입스크립트 환경 구축하기]()
+=======
+### 9.6 [생산성을 높이는 타입스크립트의 기능](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/6.FunctionOfTSToIncreaseProductivity)ㄴㄴ
+>>>>>>> 6b024c61206c235ebff84738c55ccdbb76743b43
