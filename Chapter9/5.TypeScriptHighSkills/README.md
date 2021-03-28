@@ -134,3 +134,103 @@ const p2: Korean = {
 };
 swapProperty(p1, p2, 'age');
 ```
+
+## 9.5.2 맵드 타입
+> 맵드(mapped) 타입을 이용하면 몇 가지 규칙으로 새로운 인터페이스를 만들 수 있음  
+> 기존 인터페이스의 모든 속성을 선택 속성 또는 읽기 전용으로 만들 때 주로 사용
+
+#### 모든 속성을 선택 속성 또는 읽기 전용으로 변경하기
+```ts
+interface Person {
+    name: string;
+    age: number;
+}
+interface PersonOptional {
+    name?: string;
+    age?: number;
+}
+interface PersonReadOnly {
+    readonly name: string;
+    readonly age: number;
+}
+```
+
+#### 두 개의 속성을 불 타입으로 만드는 맵드 타입
+```ts
+type T1 =  { [K in 'prop1' | 'prop2']: boolean };
+// { prop1: boolean; prop2: boolean; }
+```
+
+- `in` 키워드 오른쪽에는 문자열의 유니온 타입이 올 수 있음
+
+#### 인터페이스의 모든 속성을 불 타입 및 선택 속성으로 만들어주는 맵드 타입
+```ts
+type MakeBoolean<T> = { [P in keyof T]?: boolean };
+const pMap: MakeBoolean<Person> = {};
+pMap.name = true;
+pMap.age = false;
+```
+
+### `Partial`과 `Readonly` 내장 타입
+#### 맵드 타입으로 만드는 `Partial`과 `Readonly`
+```ts
+type T1 = Person['name']; // string 1
+type Readonly<T> = { readonly [P in keyof T]: T[P] }; // 2
+type Partial<T> = { [P in keyof T]?: T[P] }; // 3
+type T2 = Partial<Person>;
+type T3 = Readonly<Person>;
+```
+
+1) 인터페이스에서 특정 속성의 타입을 추출할 때 사용되는 문법
+2) 인터페이스의 모든 속성을 읽기 전용으로 만들어 주는 맵드 타입
+   - `keyof T`에 의해 인터페이스 `T`의 모든 속성 이름이 유니온 타입으로 생성
+   - `T[P]`는 인터페이스 `T`에 있는 속성 `P`의 타입을 그대로 사용하겠다는 의미
+3) 인터페이스의 모든 속성을 선택 속성으로 만들어주는 맵드 타입
+
+### `Pick` 내장 타입
+> 원하는 속성만 추출할 때 사용
+```ts
+type Pick<T, K extends keyof T> = { [P in K]: T[P] }; // 1
+interface Person {
+    name: string;
+    age: number;
+    language: string;
+}
+type T1 = Pick<Person, 'name' | 'language'>;
+// type T1 = { name: string; language: string; } // 2 
+```
+1) `Pick`은 인터페이스 `T`와 해당 인터페이스의 속성 이름 `K`를 입력으로 받음
+2) `Person`에서 `name`,`language`를 추출한 결과
+
+### 열거형 타입과 맵드 타입
+> 맵드 타입을 이용하면 열거형 타입의 활용도를 높일 수 있음
+
+#### 열거형 타입의 모든 원소를 속성 이름으로 가지는 객체
+```ts
+enum Fruit {
+    Apple,
+    Banana,
+    Orange,
+}
+const FRUIT_PRICE= {
+    [Fruit.Apple]: 1000,
+    [Fruit.Banana]: 1500,
+    [Fruit.Orange]: 2000,
+};
+```
+- 실수로 가격 정보를 깜빡해도 에러가 발생하지 않음
+
+#### 맵드 타입을 이용한 `FRUIT_PRICE`타입 정의
+```ts
+enum Fruit {
+    Apple,
+    Banana,
+    Orange,
+}
+const FRUIT_PRICE: { [key in Fruit]: number } = { // Type Error
+    [Fruit.Apple]: 1000,
+    [Fruit.Banana]: 1500,
+}
+```
+- `Orange` 속성을 추가해야 에러가 사라짐
+
