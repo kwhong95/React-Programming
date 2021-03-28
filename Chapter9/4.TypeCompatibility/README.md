@@ -89,3 +89,44 @@ interface Product {
 
 - 추가 속성이 있으면 값의 집합은 더 작아지므로 `Person`을 `Product`에 할당하는 데 문제가 되지 않음
 - 속성의 타입의 범위가 넓어지면 값의 집합은 더 커짐
+
+## 9.4.3 함수의 타입 호환성
+> 함수는 호출하는 시점에 문제가 없어야 할당 가능
+
+- 함수 타입 A가 B로 할당 가능하기 위한 조건
+    + A의 매개변수 개수가 B의 매개변수 개수보다 적어야 함
+    + 같은 위치의 매개변수에 대해 B의 매개변수가 A의 매개변수로 할당 가능해야 함
+    + A의 반환값은 B의 반환값으로 할당 가능해야 함
+    
+```ts
+type F1 = (a: number, b: string) => number;
+type F2 = (a: number) => number;
+type F3 = (a: number) => number | string;
+let f1: F1 = (a, b) => 1;
+let f2: F2 = a => 1;
+let f3: F3 = a => 1;
+f1 = f2;
+f2 = f1; // Type Error 1
+f2 = f3; // Type Error 2 
+```
+
+- TE1 : `F2` 보다 `F1`의 매개변수 개수가 더 많으므로 `F1`은 `F2`로 할당 가능하지 않음
+- TE2 : `F3`의 반환 타입은 `F1`의 반환 타입으로 할당 가능하지 않으므로 `F3` 는 `F2`로 할당 가능하지 않음
+
+### 배열의 `map` 메서드를 통해 살펴보는 함수의 타입 호환성
+```ts
+function addOne(value: number) {
+    return value + 1;
+}
+const result = [1, 2, 3].map<number>(addOne);
+// (value: number, index: number, array: number[]) => number
+```
+
+- `addOne` 함수는 `map` 메서드의 매개변수로 할당 가능
+    + `map` 메서드의 제네릭으로 입력한 `number`는 매개변수 함수의 반환 타입을 의미
+- 주석은 `map`메서드가 입력받는 함수의 타입을 의미, `addOne` 함수는 이 타입에 할당 가능
+- 함수 타입 할당 조건을 `map` 메서드 입장에서 생각해 보기
+    + `map` 메서드는 세 개의 매개변수를 넘겨주는데, 네 개의 매개변수를 사용하는 함수가 할당되면 문제가 됨(네 번째 매개변수가 전달되지 않기 때문)
+    + 만약 `addOne` 함수의 매개변수 타입이 `1 | 2 | 3`이면 문제가 됨(`map` 메서드는 다른 숫자도 전달 가능하기 때문)
+    + 만약 `addOne` 함수의 반환 타입이 `number | string` 이라면 문제가 됨(위 코드의 `map` 메서드는 숫자 배열을 반환해야 하기 때문)
+    
