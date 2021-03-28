@@ -470,4 +470,3 @@ function getInfoText({ name, age = 15, language }: Param): string {
     // ...
 }
 ```
-
