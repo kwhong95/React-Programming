@@ -6,4 +6,4 @@
 ### 9.2 [타입스크립트의 여러 가지 타입](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/2.VariousTypes)
 ### 9.3 [인터페이스](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/3.Interface)
 ### 9.4 [타입 호환성](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/4.TypeCompatibility)
-### 9.5 [타입스크립트 고급 기능]()
+### 9.5 [타입스크립트 고급 기능](https://github.com/kwhong95/React-Programming/tree/master/Chapter9/5.TypeScriptHighSkills)

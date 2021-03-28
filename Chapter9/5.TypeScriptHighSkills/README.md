@@ -234,3 +234,124 @@ const FRUIT_PRICE: { [key in Fruit]: number } = { // Type Error
 ```
 - `Orange` 속성을 추가해야 에러가 사라짐
 
+## 9.5.3 조건부 타입
+> 조건부(conditional) 타입은 입력된 제네릭 타입에 따라 타입을 결정할 수 있는 기능
+
+#### 기본적인 조건부 타입의 예
+```ts
+// T extends U ? X : Y
+type IsStringType = T extends string ? 'yes' : 'no';
+type T1 = IsStringType<string>; // 'yes'
+type T2 = IsStringType<number>; // 'no'
+```
+
+#### `IsStringType` 타입에 유니온 타입을 입력한 결과
+```ts
+type T1 = IsStringType<string | number>; // 'yes' | 'no' 1
+type T2 = IsStringType<string> | IsStringType<number>; // 2
+```
+
+1) 조건부 타입에 유니온 타입이 입력되면 각 타입을 하나씩 검사해서 타입을 결정하고 최종 결과는 유니온 타입으로 만들어짐
+2) `T1` 과 `T2`는 결과적으로 같은 타입
+
+### `Exclude`, `Extract` 내장 타입
+```ts
+type T1 = number | string | never; // string | number 1️⃣
+type Exclude<T, U> = T extends U ? never : T; // 2️⃣
+type T2 = Exclude<1 | 3 | 5 | 7, 1 | 5 | 9>; // 3, 7 3️⃣
+type T3 = Exclude<string | number | (() => void ), Function>; // string | number 4️⃣
+type Extract<T, U> = T extends U ? T : never; // 5️⃣
+type T4 = Extract<1 | 3 | 5 | 7, 1 | 5 | 9>; // 1 | 5 6️⃣
+
+```
+
+1️⃣ 유니온 타입에 있는 `never`타입은 제거, 이는 조건부 타입에서 자주 사용되는 기능  
+2️⃣ `Exclude`타입은 `U`의 서브 타입을 제거해주는 유틸리티 타입  
+3️⃣ 3와 7은 `1 | 5 | 9`타입의 서브 타입이 아니므로 `T2` 타입은 `3 | 7` 이 됨  
+4️⃣ `T3`은 함수가 제거된 `string | number` 타입  
+5️⃣ `Extract`는 `Exclude`와 반대로 동작하는 유틸리티 타입  
+6️⃣ 1과 5는 `1 | 5 | 9` 타입에 포함되기 때문에 `T4`는 `1 | 5`가 됨
+
+### `ReturnType` 내장 타입
+> 조건부 타입으로 만들어진 `ReturnType` 내장 타입은 함수의 반환 타입을 추출함
+```ts
+type ReturnType<T> = T extends (...args: any[]) => infer R ? R : any;
+type T1 = ReturnType<() => string>; // string
+function f1(s: string): number {
+    return  s.length;
+}
+type R2 = ReturnType<typeof f1>; // number
+```
+
+- 입력된 타입 `T`가 함수이면 함수의 반환 타입이 사용되고, 그렇지 않으면 `any`타입이 사용됨
+- 타입 추론을 위해 `infer` 키워드를 사용 - 함수의 반환 타입을 `R`이라는 변수에 담음(`extends`키워드 뒤에 사용)
+
+#### `infer` 키워드를 중첩해서 사용하는 예
+```ts
+type Unpacked<T> = T extends (infer U)[] // 1
+? U
+: T extends (...args: any[]) => infer U // 2
+    ? U 
+    : T extends Promise<infer U> ? U : T; // 3
+type T0 = Unpacked<string>; // string 4 
+type T1 = Unpacked<string[]>; // string
+type T2 = Unpacked<() => string>; // string
+type T3 = Unpacked<Promise<string>>; // string
+type T4 = Unpacked<Promise<string>[]>; // Promise<string> 5
+type T5 = Unpacked<Unpacked<Promise<string>[]>> // string
+```
+1) 타입 `T`가 `U`의 배열이면 `U`가 사용
+2) 함수면 반환 타입이 사용됨
+3) 프로미스면 프로미스에 입력된 제네릭 타입이 사용됨
+4) 아무것도 만족하지 않으면 자기 자신이 됨
+5) `Promise<string>`의 배열이므로 `Promise<string>`이 됨
+
+### 조건부 타입으로 직접 만들어 보는 유틸리티 타입
+#### 인터페이스에서 문자열 속성만 추출해서 사용하는 유틸리티 타입
+```ts
+type StringPropertyNames<T> = {
+    [K in keyof T]: T[K] extends String ? K : never
+}[keyof T];
+type StringProperties<T> = Pick<T, StringPropertyNames<T>>;
+interface Person {
+    name: string;
+    age: number;
+    nation: string;
+}
+type T1 = StringPropertyNames<Person>; // "name" | "nation"
+type T2 = StringProperties<Person>; // { name: string; nation: string; }
+```
+- 타입 T에서 값이 문자열인 모든 속성의 이름을 유니온 타입으로 만들어주는 유틸리티 타입
+- `[keyof T]`는 인터페이스에서 모든 속성의 타입을 유니온으로 추출(`never`는 제거)
+- `StringProperties`는 인터페이스에서 문자열인 모든 속성을 추출하는 유틸리티 타입
+
+#### 일부 속성만 제거해 주는 유틸리티 타입
+```ts
+type Omit<T, U extends keyof T> = Pick<T, Exclude<keyof T, U>>;
+interface Person {
+    name: string;
+    age: number;
+    nation: string;
+}
+type T1 = Omit<Person, 'nation' | 'age'>;
+const p: T1 = {
+    name: 'mike',
+};
+```
+
+- 인터페이스 `T`에서 입력된 속성 이름 `U`를 제거
+
+#### 인터페이스를 덮어쓰는 유틸리티 타입
+```ts
+type Overwrite<T, U> = { [P in Exclude<keyof T, keyof U>]: T[P] } & U;
+interface Person {
+    name: string;
+    age: number;
+}
+type T1 = Overwrite<Person, { age: string, nation: string }>;
+const p: T1 = {
+    name: 'mike',
+    age: 23,
+    nation: 'korea'
+};
+```
