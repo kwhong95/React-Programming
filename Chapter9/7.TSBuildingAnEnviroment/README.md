@@ -17,3 +17,25 @@ touch tsconfig.json
 npx next
 ```
 
+## 9.7.2 프레임워크를 사용하지 않고 타입스크립트 환경 구축하기
+
+```shell
+mkdir ts-config
+cd ts-config
+npm i typescript react react-dom
+npm i @types/react @types/react-dom
+npx tsc --init
+```
+
+### `tsconfig.json` 파일에 설정하기
+```json
+{
+  // ...
+  "jsx": "react",
+  "outDir": "./dist",
+  // ...
+}
+```
+
+### 타입스크립트로 간단한 리액트 코드 작성하기
+> 소스코드는 `ts-custom` 폴더 참조
