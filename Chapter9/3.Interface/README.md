@@ -62,3 +62,46 @@ const p2: Person = {
 const p3: Person = p2;
 ```
 
+## 9.3.2 인터페이스로 정의하는 인덱스 타입
+#### 인덱스 타입의 예
+```ts
+interface Person {
+    readonly name: string;
+    age: number;
+    [key: string]: string | number;
+}
+const p1: Person = {
+    name: 'mike',
+    birthday: '1997-01-01',
+    age: '25', // Type Error
+};
+```
+
+### 여러 개의 인덱스를 정의하는 경우
+> 속성 이름에 숫자를 사용하면 문자열로 변환된 후 사용됨  
+> 타입스크립트에서는 숫자인 속성 이름 값이 문자열인 속성 이름의 값으로 할당 가능한지 검사
+
+#### 속성 이름의 타입으로 숫자와 문자열을 동시에 사용한 경우
+```ts
+interface YearPriceMap {
+    [year: number]: A;
+    [year: string]: B;
+}
+```
+
+- 속성 이름이 숫자인 A 타입은 문자열인 B 타입에 할당 가능해야 함
+
+#### 여러 개의 인덱스를 정의해서 사용하기
+```ts
+interface YearPriceMap {
+    [year: number]: number;
+    [year: string]: string | number
+}
+const yearMap: YearPriceMap = {};
+yearMap[1998] = 1000;
+yearMap[1998] = 'abc'; // Type Error
+yearMap['2000'] = 1234;
+yearMap['2000'] = 'million';
+```
+
+
