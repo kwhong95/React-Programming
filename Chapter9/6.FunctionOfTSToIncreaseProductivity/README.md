@@ -74,3 +74,154 @@ function func2(value: number) { // 4
 3) 반환값 숫자 X - 타입 에러
 4) `return` 키워드가 여러번 사용되도 타입 추론은 잘 동작(`number | string`)
 
+## 9.6.2 타입 가드
+> 조건문을 이용해 타입의 범위를 좁히는 기능 - 불필요한 타입 단언(assertion) 코드 회피
+
+#### 타입 가드를 활용하지 않은 코드
+```ts
+function print(value: number | string) {
+    if (typeof value === 'number') {
+        console.log((value as number).toFixed(2));
+    } else {
+        console.log((value as string).trim());
+    }
+}
+```
+
+- 타입 가드가 없다면 `as` 키워드로 타입을 알려줘야 함
+
+### `typeof` 키워드
+```ts
+function print(value: number | string) {
+    if (typeof value === "number") {
+        console.log(value.toFixed(2));
+    } else {
+        console.log(value.trim());
+    }
+}
+```
+- 타입스크립트는 `typeof` 키워드를 이용해 타입을 인식, 해당 메서드 호출 가능
+
+### `instanceof` 키워드
+
+```ts
+class Person {
+    name: string;
+    age: number;
+
+    constructor(name: string, age: number) {
+        this.name = name;
+        this.age = age;
+    }
+}
+
+class Product {
+    name: string;
+    price: number;
+    constructor(name: string, price: number) {
+        this.name = name;
+        this.age = age;
+    }
+}
+function print(value: Person | Product) {
+    console.log(value.name);
+    if (value instanceof Person) {
+        console.log(value.age); // 1
+    } else {
+        console.log(value.price); // 2
+    }
+}
+const person = new Person('mike', 23);
+print(person);
+```
+ 
+1) 타입 가드 덕분에 `if` 문 안에서 `Person`의 `age` 속성에 접근 가능
+2) 타입스크립트는 `else` 블록에서 `value`의 타입이 `Product`로 인식
+
+- 인터페이스의 경우 `instanceof` 키워드를 사용할 수 없음(생성자 함수만 올 수 있기 때문)
+
+#### `instanceof`키워드를 잘못 사용한 예
+```ts
+interface Person {
+    name: string;
+    age: number;
+}
+interface Product {
+    name: string;
+    price: number;
+}
+function print(value: Person | Product) {
+    if (value instanceof  Person) { 
+        consol.log(value.age);
+    } else {
+        console.log(value.price);
+    }
+}
+```
+- 인터페이스는 타입 검사에만 사용되는데, 컴파일 후에는 삭제가 되므로 사용할 수 없음
+
+### 식별 가능한 유니온 타입
+> 인터페이스를 구별하기 위한 한 가지 방법은 식별 가능한 유니온(discrimination union) 타입을 이용하는 것
+```ts
+interface Person {
+    type: 'person',
+    name: string;
+    age: number;
+}
+interface Product {
+    type: 'product',
+    name: string;
+    price: number;
+}
+function printj(value: Person | Product) {
+    if (value.type === 'person') {
+        console.log(value.age);
+    } else {
+        console.log(value.price);
+    }
+}
+```
+- 두 인터페이스에 `type` 이라는 같은 이름의 속성을 정의하고, 이를 통해 타입 가드를 이용함
+
+#### `switch`문에서 식별 가능한 유니온 타입 사용하기
+```ts
+function print(value: Person | Product) {
+    switch (value.type) {
+        case 'person':
+            console.log(value.age);
+            break;
+        case 'product':
+            console.log(value.price);
+            break;
+    }
+}
+```
+
+### 타입을 검사하는 함수
+#### 함수를 이용한 타입 가드
+```ts
+function isPerson(x: any): x is Person {
+    return (x as Person).age !== undefined;
+}
+function print(value: Person | Product) {
+    if (isPerson(value)) {
+        console.log(value.age);
+    } else {
+        console.log(value.price);
+    }
+}
+```
+
+- 입력된 인수가 `Person` 타입 인지 검사하는 함수
+
+### `in` 키워드
+```ts
+function print(value: Person | Product) {
+    if('age' in value ) {
+        console.log(value.age);
+    } else {
+        console.log(value.price);
+    }
+}
+```
+- 속성 이름의 존재를 검사하는 것으로 타입 가드 동작
