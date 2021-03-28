@@ -109,4 +109,3 @@ console.log('123'.padStart(5, '0'));
   }
 }
 ```
-
