@@ -104,4 +104,104 @@ yearMap['2000'] = 1234;
 yearMap['2000'] = 'million';
 ```
 
+## 9.3.3 그 밖에 인터페이스로 할 수 있는 것
+### 인터페이스로 함수 타입 정의하기
+```ts
+interface GetInfoText {
+    (name: string, age: number): string;
+}
+const getInfoText: GetInfoText = function(name, age) {
+    const nameText = name.substr(0, 10);
+    const ageText = name >= 35 ? 'senior' : 'junior';
+    return `name: ${nameText}, age: ${ageText}`;
+};
+```
 
+- 인터페이스로 함수를 정의할 때는 속성 이름 없이 정의
+
+#### 함수 타입에 속성값 추가하기
+```ts
+interface GetInfoText {
+    (name: string, age: number);
+    totalCall: number;
+}
+const getInfoText: GetInfoText = function(name, age) {
+    getInfoText.totalCall += 1;
+    console.log(`totalCall: ${getInfoText.totalCall}`);
+    // ...
+};
+getInfoText.totalCall = 0;
+```
+
+### 인터페이스로 클래스 구현하기
+
+```ts
+interface Person {
+    name: string;
+    age: number;
+
+    isYoungThan(age: number): boolean;
+}
+
+class SomePerson implements Person {
+    name: string;
+    age: number;
+    constructor(name: string, age: number) {
+        this.name = name;
+        this.age = age;
+    }
+    isYoungThan(age: number) {
+        return this.age < age;
+    }
+}
+```
+- `implements` 키워드를 사용해 인터페이스를 클래스로 구현할 수 있음
+- 하나의 속성이라도 구현하지 않으면 컴파일 에러가 발생
+
+### 인터페이스 확장하기
+```ts
+interface Person {
+    name: string;
+    age: number;
+}
+interface Korean extends Person {
+    isLiveInSeoul: boolean;
+}
+/*
+interface Korean {
+    name: string;
+    age: number;
+    isLiveInSeoul: boolean;
+}
+ */
+```
+
+#### 여러 개의 인터페이스 확장히기
+```ts
+// ...
+interface Programmer {
+    favoratieProgrammingLanguage: string;
+}
+interface Korean extends Person, Programmer {
+    isLiveInSeoul: boolean;
+}
+```
+
+### 인터페이스 합치기
+#### 교차 타입을 이용해서 인터페이스 합치기
+```ts
+interface Person {
+    name: string;
+    age: number;
+}
+interface Product {
+    name: string;
+    price: number;
+}
+type PP = Person & Product;
+const pp: PP = {
+    name: 'a',
+    age: 23,
+    price: 1000,
+};
+```
