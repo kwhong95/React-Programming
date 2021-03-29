@@ -45,5 +45,7 @@ const _MyComponent: React.FunctionComponent<Props> = function ({ name, age = 23 
 - `MyComponent` 컴포넌트를 사용하는 곳에서는 `name` 속성을 반드시 입력해야 하며, `age` 는 입력하지 않아도 됨
 
 ### 클래스형 컴포넌트의 타입 정의하기
-> Skip!!
+> SKIP!!
 
+## 9.8.2 리덕스에서 타입 정의하기
+> SKIP!!
